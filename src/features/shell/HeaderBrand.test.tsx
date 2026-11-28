@@ -1,6 +1,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, act } from '@testing-library/react';
-import { ExtensionVersionContext } from './ExtensionVersionContext';
+import { extensionChrome } from '@/entrypoints/regis.content/extensionChrome';
+import {
+  DEFAULT_SHELL_CHROME,
+  ShellChromeContext,
+  type ShellChrome,
+} from './ShellChromeContext';
 import { HeaderBrand } from './HeaderBrand';
 import { Header } from './Header';
 import { uiStore } from './uiStore';
@@ -14,9 +19,9 @@ afterEach(() => {
 
 function renderBrand(version: string | null) {
   return render(
-    <ExtensionVersionContext.Provider value={version}>
+    <ShellChromeContext.Provider value={extensionChrome(version)}>
       <HeaderBrand />
-    </ExtensionVersionContext.Provider>,
+    </ShellChromeContext.Provider>,
   );
 }
 
@@ -69,11 +74,32 @@ describe('HeaderBrand', () => {
     expect(container.textContent).toBe('');
   });
 
+  it('renders whatever badge the chrome gives, with no values to fill', () => {
+    // Stand in keys whose text is known, to show the brand renders the keys it is
+    // given rather than the version keys.
+    const chrome: ShellChrome = {
+      ...DEFAULT_SHELL_CHROME,
+      badge: {
+        pill: 'language.en',
+        line: 'language.en',
+        phrase: 'language.th',
+        values: {},
+      },
+    };
+    const { container } = render(
+      <ShellChromeContext.Provider value={chrome}>
+        <HeaderBrand />
+      </ShellChromeContext.Provider>,
+    );
+    expect(pill(container)).toHaveTextContent(/^English$/);
+    expect(screen.getByText('ไทย')).toHaveClass('sr-only');
+  });
+
   it('sits in the header leading group before the title', () => {
     const { container } = render(
-      <ExtensionVersionContext.Provider value="1.5.0">
+      <ShellChromeContext.Provider value={extensionChrome('1.5.0')}>
         <Header titleId="title" />
-      </ExtensionVersionContext.Provider>,
+      </ShellChromeContext.Provider>,
     );
     const leading = container.querySelector('header > div');
     const brand = leading?.firstElementChild;

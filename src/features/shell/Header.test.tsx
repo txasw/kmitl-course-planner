@@ -8,6 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import { Header } from './Header';
+import { DEFAULT_SHELL_CHROME, ShellChromeContext } from './ShellChromeContext';
 import { uiStore } from './uiStore';
 import { CATALOG_COLUMN_ID } from './catalogVisibility';
 import { installViewport } from '../../../tests/support/viewport';
@@ -114,6 +115,34 @@ describe('Header', () => {
     render(<Header titleId="title" />);
     fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
     expect(uiStore.getState().isOpen).toBe(false);
+  });
+
+  it('closes through the action the chrome gives', () => {
+    const onClose = vi.fn();
+    render(
+      <ShellChromeContext.Provider value={{ ...DEFAULT_SHELL_CHROME, onClose }}>
+        <Header titleId="title" />
+      </ShellChromeContext.Provider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'ปิด' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the close control out when the chrome gives no close action', () => {
+    const { container } = render(
+      <ShellChromeContext.Provider
+        value={{ ...DEFAULT_SHELL_CHROME, onClose: null }}
+      >
+        <Header titleId="title" />
+      </ShellChromeContext.Provider>,
+    );
+    expect(
+      screen.queryByRole('button', { name: 'ปิด' }),
+    ).not.toBeInTheDocument();
+    const buttons = container.querySelectorAll('header button');
+    expect(buttons[buttons.length - 1]).toBe(
+      screen.getByRole('button', { name: 'ตัวเลือกเพิ่มเติม' }),
+    );
   });
 
   it('keeps the language choice in the overflow menu', () => {

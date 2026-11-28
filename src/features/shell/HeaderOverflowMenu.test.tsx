@@ -12,7 +12,8 @@ import { SearchDepsProvider } from '@/features/search/SearchDepsContext';
 import { fakeSearchDeps } from '../../../tests/support/searchDeps';
 import { installViewport } from '../../../tests/support/viewport';
 import { debugMenuStore } from './debugMenuStore';
-import { ExtensionVersionContext } from './ExtensionVersionContext';
+import { extensionChrome } from '@/entrypoints/regis.content/extensionChrome';
+import { DEFAULT_SHELL_CHROME, ShellChromeContext } from './ShellChromeContext';
 import { HeaderOverflowMenu } from './HeaderOverflowMenu';
 import { Overlay } from './Overlay';
 import { uiStore } from './uiStore';
@@ -106,9 +107,9 @@ describe('HeaderOverflowMenu', () => {
 
   it('ends the popover with a muted version line outside the menu, shown below sm', () => {
     render(
-      <ExtensionVersionContext.Provider value="1.5.0">
+      <ShellChromeContext.Provider value={extensionChrome('1.5.0')}>
         <HeaderOverflowMenu />
-      </ExtensionVersionContext.Provider>,
+      </ShellChromeContext.Provider>,
     );
     fireEvent.click(trigger());
     const menu = screen.getByRole('menu', { name: MORE });
@@ -131,9 +132,9 @@ describe('HeaderOverflowMenu', () => {
       uiStore.getState().setLanguage('en');
     });
     render(
-      <ExtensionVersionContext.Provider value="1.5.0.2">
+      <ShellChromeContext.Provider value={extensionChrome('1.5.0.2')}>
         <HeaderOverflowMenu />
-      </ExtensionVersionContext.Provider>,
+      </ShellChromeContext.Provider>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'More options' }));
     expect(screen.getByText('KCP v1.5.0.2')).toHaveAttribute(
@@ -141,6 +142,30 @@ describe('HeaderOverflowMenu', () => {
       'true',
     );
     expect(screen.getByText('KCP version 1.5.0.2')).toHaveClass('sr-only');
+  });
+
+  it('shows the line and phrase of whatever badge the chrome gives', () => {
+    render(
+      <ShellChromeContext.Provider
+        value={{
+          ...DEFAULT_SHELL_CHROME,
+          badge: {
+            pill: 'language.en',
+            line: 'app.title',
+            phrase: 'tour.menu',
+            values: {},
+          },
+        }}
+      >
+        <HeaderOverflowMenu />
+      </ShellChromeContext.Provider>,
+    );
+    fireEvent.click(trigger());
+    const visible = screen.getByText('KCP: ตัววางแผนตารางเรียน สจล.');
+    expect(visible).toHaveAttribute('aria-hidden', 'true');
+    const line = visible.parentElement ?? document.body;
+    expect(line).toHaveClass('sm:hidden');
+    expect(within(line).getByText(TOUR)).toHaveClass('sr-only');
   });
 
   it('leaves the version line out when the version is unreadable', () => {

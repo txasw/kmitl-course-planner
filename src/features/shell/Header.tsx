@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { uiStore } from './uiStore';
+import { useShellChrome } from './ShellChromeContext';
 import { useTranslation } from './useTranslation';
 import { PlanSwitcher } from '@/features/plans/PlanSwitcher';
 import {
@@ -22,7 +23,7 @@ interface HeaderProps {
 // The overlay header: one row that never wraps, at least 56 px high and 48 px on a short
 // viewport, padded clear of the device safe areas. Below 640 px the padding and gaps
 // tighten so the touch sized controls still fit a 320 px screen. The leading group
-// holds the brand mark with its version pill from 640 px, the panel title, and the plan
+// holds the brand mark with its badge pill from 640 px, the panel title, and the plan
 // switcher; it is the only part that shrinks, and the switcher wraps the plan name onto
 // two lines a step down the type scale before anything else gives way. A name that two
 // lines cannot hold wraps onto more at the smallest step, and the row grows to hold the
@@ -33,13 +34,13 @@ interface HeaderProps {
 // text, so the dialog's aria-labelledby always resolves. The trailing group never
 // shrinks and carries the catalog toggle in edit mode on the medium tier, where the
 // catalog is a sheet, then the export button, the overflow menu that holds the language
-// on every tier, and the close control, which is always last so leaving the overlay
-// stays one action away at every width.
+// on every tier, and the close control when the chrome gives one, which is always last
+// so leaving the overlay stays one action away at every width.
 // On the export page the leading group holds the back to editing button and the title
 // only, since the poster names the plan and a plan is switched while editing, and the
 // trailing group drops the export button (ADR-0022 amendment).
 export function Header({ titleId }: HeaderProps) {
-  const close = useStore(uiStore, (state) => state.close);
+  const { onClose } = useShellChrome();
   const viewMode = useStore(uiStore, (state) => state.viewMode);
   const exporting = viewMode === 'preview';
   const headerRef = useRef<HTMLElement>(null);
@@ -65,14 +66,16 @@ export function Header({ titleId }: HeaderProps) {
         <CatalogToggle />
         {exporting ? null : <ExportButton />}
         <HeaderOverflowMenu />
-        <button
-          type="button"
-          onClick={close}
-          aria-label={t('action.close')}
-          className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
-        >
-          <X size={20} strokeWidth={2} aria-hidden />
-        </button>
+        {onClose === null ? null : (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('action.close')}
+            className={`inline-flex shrink-0 items-center justify-center rounded-kcp p-2 text-ink-soft transition-colors hover:bg-surface-alt hover:text-ink ${TARGET_SIZE} ${FOCUS_RING}`}
+          >
+            <X size={20} strokeWidth={2} aria-hidden />
+          </button>
+        )}
       </div>
     </header>
   );
