@@ -2,7 +2,9 @@
 // inbound payload against the request schema it is given, and dispatches to a typed
 // handler. It is generic over the message union, so the extension routes its full
 // protocol and a smaller program can route the core one with the same code.
-// The debug namespace is refused outright unless this is a debug build with a
+// A schema without the debug namespace, such as the core one, rejects a debug
+// message as a validation error before any debug check. On a schema that carries
+// it, the debug namespace is refused outright unless this is a debug build with a
 // dispatcher installed, so production actively rejects debug routes as defense in
 // depth. Any handler throw is converted to an UnknownError so no raw exception
 // crosses the messaging boundary. The runtime id is injected rather than read from
