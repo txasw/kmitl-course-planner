@@ -1,7 +1,7 @@
 // The extension's whole message protocol: the core messages every program shares,
-// composed with the host check and the debug namespace. The background router validates against this
-// schema and the content side sends over this union, while a program that carries only
-// the core messages imports the core protocol alone.
+// composed with the host check and the debug namespace. The background router
+// validates against this schema and the content side sends over this union, while a
+// program that carries only the core messages imports the core protocol alone.
 
 import { z } from 'zod';
 import { coreRequestMessageSchema, type CoreResponseMap } from './protocol';
