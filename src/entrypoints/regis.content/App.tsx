@@ -10,14 +10,12 @@ import {
   usePlanPersistence,
   type PlanPersistenceDeps,
 } from '@/features/plans/usePlanPersistence';
-import { useRevalidationTriggers } from '@/features/plans/useRevalidationTriggers';
-import { useUpdatesAutoOpen } from '@/features/plans/useUpdatesAutoOpen';
+import { RevalidationTriggers } from '@/features/plans/RevalidationTriggers';
 import {
   SearchDepsProvider,
-  useSearchDeps,
   type SearchDeps,
 } from '@/features/search/SearchDepsContext';
-import { useSearchBoot } from '@/features/search/useSearchController';
+import { SearchBoot } from '@/features/search/SearchBoot';
 import { DiagnosticsGate } from '@/features/diagnostics/DiagnosticsGate';
 import {
   useOnboardingPersistence,
@@ -107,22 +105,4 @@ export function App({
       </SearchDepsProvider>
     </ShellChromeContext.Provider>
   );
-}
-
-// A zero render child that starts loading the last search when the content script
-// mounts, so a reload's first open finds it loaded. The term seed waits for that open,
-// so a host route captured then still wins.
-function SearchBoot() {
-  useSearchBoot(useSearchDeps());
-  return null;
-}
-
-// A zero render child so the revalidation triggers can read the injected send from
-// the search deps context rather than threading it through props. The updates dialog's
-// automatic opening rides along, since it acts on what those triggers find.
-function RevalidationTriggers() {
-  const { send } = useSearchDeps();
-  useRevalidationTriggers(send);
-  useUpdatesAutoOpen();
-  return null;
 }
