@@ -204,20 +204,28 @@ describe('deploy-site workflow', () => {
       WRANGLER_VERSION: '${{ needs.build.outputs.wrangler-version }}',
     });
 
-    // The Wrangler configuration comes from the commit, never from the artifact.
+    // The configuration and the pages come from the checked commit.
     const checkout = deploySteps.find((step) =>
       step.uses?.startsWith('actions/checkout@'),
     );
     expect(checkout?.with).toEqual({
       ref: '${{ needs.build.outputs.commit }}',
       'persist-credentials': false,
-      'sparse-checkout': '/wrangler.jsonc',
+      'sparse-checkout': '/wrangler.jsonc\n/site/\n',
       'sparse-checkout-cone-mode': false,
     });
-    const download = deploySteps.find((step) =>
-      step.uses?.startsWith('actions/download-artifact@'),
-    );
-    expect(download?.with).toEqual({ name: 'site', path: 'site' });
+  });
+
+  it('gives the build job no channel into the deploy but the commit', () => {
+    for (const step of [...steps(buildJob), ...steps(deployJob)]) {
+      expect(step.uses ?? '', step.name).not.toMatch(
+        /^actions\/(?:upload|download)-artifact@|^actions\/cache/,
+      );
+    }
+    expect(Object.keys(buildJob.outputs ?? {})).toEqual([
+      'commit',
+      'wrangler-version',
+    ]);
   });
 
   it('checks out without persisting the repository token', () => {
