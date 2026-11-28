@@ -51,6 +51,10 @@ export function useHelperToastFloor(
   const view = useStore(helperStore, (state) => state.view);
   const active = route !== null && !panelOpen && phone && !hidden;
 
+  // The region is looked up once per run, so this relies on the Toaster mounting in the
+  // same commit as the helper or earlier, as the content script App does: a layout effect
+  // runs after the whole commit is in the DOM. A region mounted later is not seen until
+  // one of the dependencies below changes.
   useLayoutEffect(() => {
     const anchor = anchorRef.current;
     const root = anchor === null ? null : rootOf(anchor);
