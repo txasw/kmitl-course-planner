@@ -10,7 +10,10 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import type { Plan } from '@/lib/domain/plan';
-import { companionRoute, type CompanionRoute } from '@/lib/regis/route';
+import {
+  companionRoute,
+  type CompanionRoute,
+} from '@/lib/routing/registrationRoute';
 import { companionKits, kitMatchesPlan } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 import { deriveChecklist, type Checklist } from '@/lib/regis/checklist';

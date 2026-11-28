@@ -181,10 +181,6 @@ const REGIS_EXCEPTIONS = [
 // Each file may import only the names it reads today; any other regis import is refused.
 const REGIS_MOVES_PENDING = [
   {
-    file: 'src/features/shell/quietRoute.ts',
-    imports: { '@/lib/regis/route': ['isRegistrationRoute'] },
-  },
-  {
     file: 'src/features/search/useSearchController.ts',
     imports: { '@/lib/regis/quietMode': ['automaticReferenceRead'] },
   },

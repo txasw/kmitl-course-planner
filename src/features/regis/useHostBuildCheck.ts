@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { hostBuildReplySchema } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { buildKey, checkablePair } from '@/lib/regis/hostBuild';
-import { companionRoute } from '@/lib/regis/route';
+import { companionRoute } from '@/lib/routing/registrationRoute';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { buildCheckStore } from './host/buildCheckStore';
 import { readScriptNames } from './host/hostDom';

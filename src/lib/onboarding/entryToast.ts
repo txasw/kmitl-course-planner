@@ -22,7 +22,7 @@
 import type { Plan, PlanEntry } from '../domain/plan';
 import { summarizeCredits } from '../planner/credits';
 import { countUpdateItems } from '../planner/updateReview';
-import { isRegistrationRoute } from '../regis/route';
+import { isRegistrationRoute } from '../routing/registrationRoute';
 import { parseTeachTableRoute } from '../routing/parseTeachTableRoute';
 import { routeSearchPrefill, type SearchPrefill } from '../search/queryForms';
 

@@ -4,7 +4,7 @@ import {
   companionRoute,
   isRegistrationRoute,
   prepareRefused,
-} from './route';
+} from './registrationRoute';
 
 describe('isRegistrationRoute', () => {
   it.each(REGISTRATION_ROUTES)('treats %s as a registration page', (path) => {

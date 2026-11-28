@@ -5,7 +5,7 @@
 // is pure and reads only the route path, never the query, so it never needs anything
 // the address may carry besides the page name.
 
-import { routePath } from '../routing/locationHash';
+import { routePath } from './locationHash';
 
 /** The registration pages of the host, by route path without the leading hash. */
 export const REGISTRATION_ROUTES: readonly string[] = [

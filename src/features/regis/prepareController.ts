@@ -9,7 +9,10 @@
 import type { Plan } from '@/lib/domain/plan';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { Translate } from '@/lib/i18n/t';
-import { prepareRefused, type PrepareSource } from '@/lib/regis/route';
+import {
+  prepareRefused,
+  type PrepareSource,
+} from '@/lib/routing/registrationRoute';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { statusStore } from '@/features/shell/statusStore';
 import { toastStore } from '@/features/shell/toastStore';

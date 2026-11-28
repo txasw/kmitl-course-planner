@@ -14,7 +14,7 @@ import type { Plan } from '@/lib/domain/plan';
 import type { FillItem, FillTarget, StopReason } from '@/lib/regis/fillPlan';
 import { buildKey, fillGate } from '@/lib/regis/hostBuild';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
-import { companionRoute } from '@/lib/regis/route';
+import { companionRoute } from '@/lib/routing/registrationRoute';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { uiStore } from '@/features/shell/uiStore';
 import { helperStore } from '../helperStore';
