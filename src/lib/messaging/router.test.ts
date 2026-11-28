@@ -7,11 +7,16 @@ import {
   type MessageSender,
 } from './router';
 import type { RawFaculty } from '../domain/schemas';
+import {
+  requestMessageSchema,
+  type RequestMessage,
+  type ResponseMap,
+} from './protocol';
 
 const RUNTIME_ID = 'kcp-extension-id';
 const sender = { id: RUNTIME_ID };
 
-function facultyHandlers(): HandlerMap {
+function facultyHandlers(): HandlerMap<RequestMessage, ResponseMap> {
   return {
     'ref/faculty': () =>
       Promise.resolve({ ok: true as const, value: [] as RawFaculty[] }),
@@ -24,18 +29,27 @@ describe('createRouter', () => {
   });
 
   it('drops a message from a foreign sender', () => {
-    const router = createRouter({ handlers: {}, runtimeId: RUNTIME_ID });
+    const router = createRouter({
+      schema: requestMessageSchema,
+      handlers: {},
+      runtimeId: RUNTIME_ID,
+    });
     expect(router({ type: 'ref/faculty' }, { id: 'other' })).toBeUndefined();
   });
 
   it('rejects a malformed message with a validation error', async () => {
-    const router = createRouter({ handlers: {}, runtimeId: RUNTIME_ID });
+    const router = createRouter({
+      schema: requestMessageSchema,
+      handlers: {},
+      runtimeId: RUNTIME_ID,
+    });
     const result = await router({ type: 'nope' }, sender);
     expect(result).toMatchObject({ ok: false, error: { kind: 'validation' } });
   });
 
   it('routes a valid message to its handler', async () => {
     const router = createRouter({
+      schema: requestMessageSchema,
       handlers: facultyHandlers(),
       runtimeId: RUNTIME_ID,
     });
@@ -44,13 +58,18 @@ describe('createRouter', () => {
   });
 
   it('returns an unknown error when no handler is registered', async () => {
-    const router = createRouter({ handlers: {}, runtimeId: RUNTIME_ID });
+    const router = createRouter({
+      schema: requestMessageSchema,
+      handlers: {},
+      runtimeId: RUNTIME_ID,
+    });
     const result = await router({ type: 'ref/faculty' }, sender);
     expect(result).toMatchObject({ ok: false, error: { kind: 'unknown' } });
   });
 
   it('converts a handler throw into an unknown error', async () => {
     const router = createRouter({
+      schema: requestMessageSchema,
       handlers: {
         'ref/faculty': () => Promise.reject(new Error('boom')),
       },
@@ -65,7 +84,11 @@ describe('createRouter', () => {
     // unused: the production router refuses the whole debug namespace.
     const dispatch = vi.fn();
     setDebugDispatch(dispatch);
-    const router = createRouter({ handlers: {}, runtimeId: RUNTIME_ID });
+    const router = createRouter({
+      schema: requestMessageSchema,
+      handlers: {},
+      runtimeId: RUNTIME_ID,
+    });
     const result = await router({ type: 'debug/getRequestLog' }, sender);
     expect(dispatch).not.toHaveBeenCalled();
     expect(result).toEqual({
@@ -80,6 +103,7 @@ describe('createRouter', () => {
     ): Promise<HandlerContext[]> {
       const seen: HandlerContext[] = [];
       const router = createRouter({
+        schema: requestMessageSchema,
         handlers: {
           'ref/faculty': (_message, context) => {
             seen.push(context);
@@ -116,6 +140,7 @@ describe('createRouter', () => {
 
     it('still drops a foreign sender that carries a tab', () => {
       const router = createRouter({
+        schema: requestMessageSchema,
         handlers: facultyHandlers(),
         runtimeId: RUNTIME_ID,
       });

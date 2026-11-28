@@ -25,6 +25,11 @@ import {
   facultyEndpoint,
   subjectOwnerEndpoint,
 } from '@/lib/api/endpoints';
+import {
+  requestMessageSchema,
+  type RequestMessage,
+  type ResponseMap,
+} from '@/lib/messaging/protocol';
 import { createRouter, type HandlerMap } from '@/lib/messaging/router';
 import { ok } from '@/lib/utils/result';
 import { logger } from '@/lib/utils/logger';
@@ -113,7 +118,7 @@ export default defineBackground(() => {
     });
   });
 
-  const handlers: HandlerMap = {
+  const handlers: HandlerMap<RequestMessage, ResponseMap> = {
     'ref/faculty': (message) => gateway.reference(facultyEndpoint, message),
     'ref/department': (message) =>
       gateway.reference(departmentEndpoint, message),
@@ -141,7 +146,11 @@ export default defineBackground(() => {
       ok(await hostCheck.check({ app: message.app, vendors: message.vendors })),
   };
 
-  const router = createRouter({ handlers, runtimeId: browser.runtime.id });
+  const router = createRouter({
+    schema: requestMessageSchema,
+    handlers,
+    runtimeId: browser.runtime.id,
+  });
 
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const response = router(message, sender);

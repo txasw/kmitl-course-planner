@@ -1,5 +1,7 @@
 // The worker side message router. It validates the sender identity, validates the
-// inbound payload against the request schema, and dispatches to a typed handler.
+// inbound payload against the request schema it is given, and dispatches to a typed
+// handler. It is generic over the message union, so the extension routes its full
+// protocol and a smaller program can route the core one with the same code.
 // The debug namespace is refused outright unless this is a debug build with a
 // dispatcher installed, so production actively rejects debug routes as defense in
 // depth. Any handler throw is converted to an UnknownError so no raw exception
@@ -8,6 +10,7 @@
 // also receives the id of the tab the message came from, so a handler can answer
 // with state the worker keeps per tab.
 
+import type { z } from 'zod';
 import {
   err,
   unknownError,
@@ -15,12 +18,14 @@ import {
   type Result,
 } from '../utils/result';
 import { IS_DEBUG } from '../env';
-import {
-  requestMessageSchema,
-  type RequestMessage,
-  type RequestType,
-  type ResponseMap,
-} from './protocol';
+
+/** What every request union shares: a string discriminant named type. */
+export interface TypedMessage {
+  type: string;
+}
+
+/** A response map keyed by each type of a message union. */
+export type ResponsesOf<M extends TypedMessage> = Record<M['type'], unknown>;
 
 /** The subset of a runtime message sender the router inspects. */
 export interface MessageSender {
@@ -42,15 +47,25 @@ export type RouterListener = (
 
 // A handler that ignores the context still satisfies this type, because a function
 // with fewer parameters is assignable to one with more.
-export type Handler<T extends RequestType> = (
-  message: Extract<RequestMessage, { type: T }>,
+export type Handler<
+  M extends TypedMessage,
+  R extends ResponsesOf<M>,
+  T extends M['type'],
+> = (
+  message: Extract<M, { type: T }>,
   context: HandlerContext,
-) => Promise<ResponseMap[T]>;
+) => Promise<R[T]>;
 
-export type HandlerMap = { [T in RequestType]?: Handler<T> };
+export type HandlerMap<M extends TypedMessage, R extends ResponsesOf<M>> = {
+  [T in M['type']]?: Handler<M, R, T>;
+};
 
-/** Handles debug namespace messages; installed only by the debug build. */
-export type DebugDispatch = (message: RequestMessage) => Promise<unknown>;
+/**
+ * Handles debug namespace messages; installed only by the debug build. It takes the
+ * message as unknown and checks it against its own schema, so the router needs no
+ * knowledge of the debug union.
+ */
+export type DebugDispatch = (message: unknown) => Promise<unknown>;
 
 let debugDispatch: DebugDispatch | null = null;
 
@@ -58,8 +73,9 @@ export function setDebugDispatch(dispatch: DebugDispatch | null): void {
   debugDispatch = dispatch;
 }
 
-export interface RouterDeps {
-  handlers: HandlerMap;
+export interface RouterDeps<M extends TypedMessage, R extends ResponsesOf<M>> {
+  schema: z.ZodType<M>;
+  handlers: HandlerMap<M, R>;
   runtimeId: string;
 }
 
@@ -93,22 +109,24 @@ function contextOf(sender: MessageSender): HandlerContext {
   return { tabId: isTabId(tabId) ? tabId : null };
 }
 
-export function createRouter({
+export function createRouter<M extends TypedMessage, R extends ResponsesOf<M>>({
+  schema,
   handlers,
   runtimeId,
-}: RouterDeps): RouterListener {
+}: RouterDeps<M, R>): RouterListener {
   return (message, sender) => {
     // A message from any context other than this extension is dropped without a
     // response channel, which is the defense against foreign senders.
     if (sender.id !== runtimeId) {
       return undefined;
     }
-    const parsed = requestMessageSchema.safeParse(message);
+    const parsed = schema.safeParse(message);
     if (!parsed.success) {
       return Promise.resolve(toValidationError(parsed.error.issues));
     }
     const request = parsed.data;
-    if (request.type.startsWith('debug/')) {
+    const type: M['type'] = request.type;
+    if (type.startsWith('debug/')) {
       if (IS_DEBUG && debugDispatch) {
         return debugDispatch(request).catch((error: unknown) =>
           err(unknownError(messageOf(error))),
@@ -116,13 +134,10 @@ export function createRouter({
       }
       return Promise.resolve(err(unknownError('debug routes disabled')));
     }
-    const handler = handlers[request.type] as
-      | ((message: RequestMessage, context: HandlerContext) => Promise<unknown>)
-      | undefined;
+    const handler = handlers[type] as
+      ((message: M, context: HandlerContext) => Promise<unknown>) | undefined;
     if (!handler) {
-      return Promise.resolve(
-        err(unknownError(`no handler for ${request.type}`)),
-      );
+      return Promise.resolve(err(unknownError(`no handler for ${type}`)));
     }
     return handler(request, contextOf(sender)).catch((error: unknown) =>
       err(unknownError(messageOf(error))),
