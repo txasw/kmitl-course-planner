@@ -111,7 +111,8 @@ export function Overlay({ children }: OverlayProps) {
         <QuarantineCard />
         {/* The boundary wraps the panel body, not the whole overlay, so a render
             error in the search, catalog, or planner shows the recovery card while the
-            header keeps its close control and the sibling launcher stays alive. */}
+            header keeps its controls, the close control when the chrome gives one,
+            and the sibling launcher stays alive. */}
         <ErrorBoundary
           fallback={(reset) => (
             <PanelRecoveryCard t={t} body={errorBody} onReload={reset} />
