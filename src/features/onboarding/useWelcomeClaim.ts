@@ -19,7 +19,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import {
   claimWelcomeReplySchema,
-  type RequestMessage,
+  type CoreRequestMessage,
 } from '@/lib/messaging/protocol';
 import type { OnboardingRepository } from '@/lib/storage/onboarding';
 import { isQuietRoute } from '@/features/shell/quietRoute';
@@ -29,7 +29,7 @@ export interface WelcomeClaimDeps {
   record: OnboardingRepository;
   /** Sends the claim; the reply is untrusted until it parses. */
   send: (
-    message: Extract<RequestMessage, { type: 'onboarding/claimWelcome' }>,
+    message: Extract<CoreRequestMessage, { type: 'onboarding/claimWelcome' }>,
   ) => Promise<unknown>;
 }
 

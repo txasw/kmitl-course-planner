@@ -8,7 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { SimulationControls } from './views';
-import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { DataQualityReport } from '@/lib/contract/report';
 import { emptyByKind } from '@/lib/contract/report';

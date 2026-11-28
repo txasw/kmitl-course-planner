@@ -21,7 +21,7 @@ import {
   toBuddhistYear,
   type Term,
 } from '@/lib/routing/academicTerms';
-import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { networkError, err, ok, type Result } from '@/lib/utils/result';
 import { loadFixture } from '../../../tests/support/fixtures';

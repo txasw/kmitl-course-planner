@@ -1,8 +1,8 @@
-// The single contract both sides of the worker boundary import. Request messages
-// are a discriminated union validated at runtime by the worker router; responses
-// are the typed Result values the gateway produces. Debug only types are pulled
-// with import type so they erase under verbatimModuleSyntax and never drag the
-// debug canary into the production bundle.
+// The core contract both sides of the worker boundary import. Request messages are
+// a discriminated union validated at runtime by the worker router; responses are the
+// typed Result values the gateway produces. The debug namespace lives in debugTypes
+// and the extension protocol composes the two, so this module reaches no debug or
+// contract code.
 
 import { z } from 'zod';
 import type { Result } from '../utils/result';
@@ -13,13 +13,7 @@ import type {
   RawSubjectOwner,
   RawCurrentTerm,
 } from '../domain/schemas';
-import type {
-  LatestRaw,
-  RequestLogEntry,
-  SimSettings,
-  TeachTableResult,
-} from '../api/types';
-import type { DataQualityReport } from '../contract/report';
+import type { TeachTableResult } from '../api/types';
 import {
   hostBuildVerdictSchema,
   type HostBuildVerdict,
@@ -84,7 +78,7 @@ const referenceOptions = {
   cacheOnly: z.boolean().optional(),
 };
 
-export const requestMessageSchema = z.discriminatedUnion('type', [
+export const coreRequestMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ref/faculty'), ...referenceOptions }),
   z.object({ type: z.literal('ref/department'), ...referenceOptions }),
   z.object({ type: z.literal('ref/curriculum'), ...referenceOptions }),
@@ -108,26 +102,9 @@ export const requestMessageSchema = z.discriminatedUnion('type', [
     vendors: z.string().regex(VENDOR_SCRIPT_NAME),
   }),
   z.object({ type: z.literal('onboarding/claimWelcome') }),
-  z.object({ type: z.literal('debug/getRequestLog') }),
-  z.object({ type: z.literal('debug/getReport') }),
-  z.object({ type: z.literal('debug/getLatestRaw') }),
-  z.object({ type: z.literal('debug/getSimulation') }),
-  z.object({ type: z.literal('debug/clearCache') }),
-  z.object({
-    type: z.literal('debug/setFixture'),
-    fixtureId: z.string().nullable(),
-  }),
-  z.object({
-    type: z.literal('debug/setFault'),
-    faultId: z.string().nullable(),
-  }),
-  z.object({
-    type: z.literal('debug/setMutation'),
-    mutationId: z.string().nullable(),
-  }),
 ]);
 
-export type RequestMessage = z.infer<typeof requestMessageSchema>;
+export type CoreRequestMessage = z.infer<typeof coreRequestMessageSchema>;
 
 /**
  * The worker's answer to the mount handshake: whether this tab was opened to show the
@@ -171,10 +148,8 @@ export const hostBuildReplySchema = z.object({
   value: hostBuildVerdictSchema,
 });
 
-export type RequestType = RequestMessage['type'];
-
-/** The response payload each request type resolves to, keyed by discriminant. */
-export interface ResponseMap {
+/** The response payload each core request type resolves to, keyed by discriminant. */
+export interface CoreResponseMap {
   'ref/faculty': Result<RawFaculty[]>;
   'ref/department': Result<RawDepartment[]>;
   'ref/curriculum': Result<RawCurriculum[]>;
@@ -185,14 +160,6 @@ export interface ResponseMap {
   'shell/mounted': Result<MountHandshake>;
   'regis/hostBuild': Result<HostBuildVerdict>;
   'onboarding/claimWelcome': Result<WelcomeClaim>;
-  'debug/getRequestLog': Result<RequestLogEntry[]>;
-  'debug/getReport': Result<DataQualityReport | null>;
-  'debug/getLatestRaw': Result<LatestRaw | null>;
-  'debug/getSimulation': Result<SimSettings>;
-  'debug/clearCache': Result<void>;
-  'debug/setFixture': Result<void>;
-  'debug/setFault': Result<void>;
-  'debug/setMutation': Result<void>;
 }
 
 // The sealed error taxonomy from utils/result as a schema, so the error arm of a

@@ -11,10 +11,8 @@ import {
   type RouterListener,
 } from '../../messaging/router';
 import { err, ok, unknownError } from '../../utils/result';
-import {
-  requestMessageSchema,
-  type RequestMessage,
-} from '../../messaging/protocol';
+import { debugRequestSchema } from '../../messaging/debugTypes';
+import type { RequestMessage } from '../../messaging/extensionProtocol';
 import type { ActionClickOutcome, ClickedTab } from '../../shell/actionClick';
 import { createAuditInterceptor } from './audit';
 import { createSimulationInterceptor } from './simulation';
@@ -39,7 +37,7 @@ export function createDebugDispatch(
   clearCache: () => Promise<void>,
 ): DebugDispatch {
   return (input) => {
-    const parsed = requestMessageSchema.safeParse(input);
+    const parsed = debugRequestSchema.safeParse(input);
     if (!parsed.success) {
       return Promise.resolve(err(unknownError('unhandled debug route')));
     }
@@ -64,10 +62,6 @@ export function createDebugDispatch(
       case 'debug/setMutation':
         state.setSettings({ mutationId: message.mutationId });
         return Promise.resolve(ok(undefined));
-      default:
-        return Promise.resolve(
-          err(unknownError(`unhandled debug route ${message.type}`)),
-        );
     }
   };
 }

@@ -29,7 +29,7 @@ import {
   requestMessageSchema,
   type RequestMessage,
   type ResponseMap,
-} from '@/lib/messaging/protocol';
+} from '@/lib/messaging/extensionProtocol';
 import { createRouter, type HandlerMap } from '@/lib/messaging/router';
 import { ok } from '@/lib/utils/result';
 import { logger } from '@/lib/utils/logger';

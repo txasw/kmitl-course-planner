@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { err, networkError, ok } from '@/lib/utils/result';
 import { toSnapshot } from '@/lib/planner/transaction';

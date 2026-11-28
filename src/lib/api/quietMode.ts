@@ -7,7 +7,7 @@
 // Whether the page is quiet is read when each request starts, so leaving the page
 // restores the normal behaviour for the next one.
 
-import type { RequestMessage } from '../messaging/protocol';
+import type { RequestMessage } from '../messaging/extensionProtocol';
 import type { TypedSend } from '../messaging/sendTyped';
 
 /** The requests that can reach the network, which are the ones a retry repeats. */

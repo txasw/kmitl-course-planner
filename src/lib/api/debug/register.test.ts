@@ -129,6 +129,28 @@ describe('installDebug', () => {
     expect(clearCache).toHaveBeenCalledTimes(1);
   });
 
+  it('answers a message outside the debug namespace with an unknown error', async () => {
+    const state = installDebug({
+      extensionVersion: '0.0.0',
+      runtimeId: 'id',
+      router: noopRouter,
+      clearCache: noopClear,
+      actionClick: noopAction,
+      now: () => 'T',
+    });
+    const dispatch = createDebugDispatch(state, noopClear);
+    for (const message of [
+      { type: 'ref/faculty' },
+      { type: 'debug/setFault' },
+      null,
+    ]) {
+      expect(await dispatch(message)).toEqual({
+        ok: false,
+        error: { kind: 'unknown', message: 'unhandled debug route' },
+      });
+    }
+  });
+
   it('captures the latest teach table raw payload for the drawer', () => {
     const state = installDebug({
       extensionVersion: '0.0.0',
