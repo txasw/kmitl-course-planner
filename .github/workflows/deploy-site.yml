@@ -5,8 +5,9 @@ name: Deploy site
 # main with a released tag deploys that tag again, which is also how a deploy rolls back.
 # The build job installs and runs the repository's code without any Cloudflare secret.
 # The deploy job runs in the cloudflare-production environment, which waits for the
-# owner's approval, and runs no package the build job installed, so no dependency script
-# runs while the token is in scope.
+# owner's approval, runs no package the build job installed, and publishes the committed
+# site/ from the checked commit rather than any file the build job wrote, so no dependency
+# script runs while the token is in scope and none can change what is published.
 
 on:
   workflow_call:
@@ -98,12 +99,6 @@ jobs:
             echo "::error::site/ differs from what pnpm site:build renders"
             exit 1
           fi
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: site
-          path: site/
-          retention-days: 14
-          if-no-files-found: error
       # Validates the configuration and reads the assets without a token. For a
       # configuration with assets alone the output is only the no op Worker that Wrangler
       # generates again at deploy, so it is not kept.
@@ -142,18 +137,18 @@ jobs:
           fi
           npm install --prefix "${RUNNER_TEMP}/wrangler" --ignore-scripts --no-audit \
             --no-fund --no-save --no-package-lock "wrangler@${WRANGLER_VERSION}"
-      # The configuration comes from the commit, not from the artifact, so nothing the
-      # build job ran can add a build command that would run beside the token.
+      # The configuration and the pages come from the commit the build job checked, never
+      # from anything the build job wrote, so a package it ran can neither add a build
+      # command that would run beside the token nor change what is published. site/ is
+      # committed and the build job proved it current, so these are the reviewed bytes.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.build.outputs.commit }}
           persist-credentials: false
-          sparse-checkout: /wrangler.jsonc
+          sparse-checkout: |
+            /wrangler.jsonc
+            /site/
           sparse-checkout-cone-mode: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: site
-          path: site
       - name: Deploy to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
