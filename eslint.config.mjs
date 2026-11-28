@@ -178,11 +178,42 @@ const REGIS_EXCEPTIONS = [
 ];
 // These still read the route classifier, quiet mode, and the host check names from
 // lib/regis, which move out of it in their own changes and take these entries with them.
+// Each file may import only the names it reads today; any other regis import is refused.
 const REGIS_MOVES_PENDING = [
-  'src/features/shell/quietRoute.ts',
-  'src/features/search/useSearchController.ts',
-  'src/lib/messaging/protocol.ts',
+  {
+    file: 'src/features/shell/quietRoute.ts',
+    imports: { '@/lib/regis/route': ['isRegistrationRoute'] },
+  },
+  {
+    file: 'src/features/search/useSearchController.ts',
+    imports: { '@/lib/regis/quietMode': ['automaticReferenceRead'] },
+  },
+  {
+    file: 'src/lib/messaging/protocol.ts',
+    imports: {
+      '../regis/buildVerdict': ['hostBuildVerdictSchema'],
+      '../regis/hostContract': ['APP_SCRIPT_NAME', 'VENDOR_SCRIPT_NAME'],
+    },
+  },
 ];
+
+// The regis patterns with the named modules taken out of the general refusal and limited
+// to the names listed for them.
+function regisPatternsAllowing(imports) {
+  const modules = Object.keys(imports);
+  return [
+    {
+      ...REGIS_IMPORT,
+      group: [...REGIS_IMPORT.group, ...modules.map((module) => `!${module}`)],
+    },
+    ...modules.map((module) => ({
+      group: [module],
+      allowImportNames: imports[module],
+      allowTypeImports: true,
+      message: NO_REGIS,
+    })),
+  ];
+}
 
 // A focus ring or outline class written by hand, in a string or a template literal.
 // The shared constants hold the one indicator, so the tokens change it in one place.
@@ -381,11 +412,7 @@ export default tseslint.config(
   // along, since this setting replaces the one above for these files.
   {
     files: REGIS_FREE,
-    ignores: [
-      '**/*.test.{ts,tsx}',
-      ...REGIS_EXCEPTIONS,
-      ...REGIS_MOVES_PENDING,
-    ],
+    ignores: ['**/*.test.{ts,tsx}', ...REGIS_EXCEPTIONS],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -393,6 +420,15 @@ export default tseslint.config(
       ],
     },
   },
+  ...REGIS_MOVES_PENDING.map(({ file, imports }) => ({
+    files: [file],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [...regisPatternsAllowing(imports), PRESS_ISSUER] },
+      ],
+    },
+  })),
 
   // The host page readers and the fill engine keep what they read in memory only.
   {
