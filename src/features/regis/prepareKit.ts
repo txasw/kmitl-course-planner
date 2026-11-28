@@ -11,7 +11,7 @@ import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Plan } from '@/lib/domain/plan';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
-import { withoutRetry } from '@/lib/regis/quietMode';
+import { withoutRetry } from '@/lib/api/quietMode';
 import { buildRegistrationKit, subjectQuery } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
 

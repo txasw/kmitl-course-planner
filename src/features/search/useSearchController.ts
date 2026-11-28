@@ -29,7 +29,7 @@ import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
-import { automaticReferenceRead } from '@/lib/regis/quietMode';
+import { automaticReferenceRead } from '@/lib/api/quietMode';
 import { activePlanTerm } from '@/features/plans/planStore';
 import { isQuietRoute } from '@/features/shell/quietRoute';
 import { searchStore, type QueryIntent } from './searchStore';

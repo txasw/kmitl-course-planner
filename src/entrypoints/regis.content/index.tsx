@@ -7,7 +7,7 @@ import { defineContentScript } from 'wxt/utils/define-content-script';
 import { IS_DEBUG } from '@/lib/env';
 import { REGIS_MATCH_PATTERN } from '@/lib/shell/hostTab';
 import { sendTyped } from '@/lib/messaging/sendTyped';
-import { quietAwareSend } from '@/lib/regis/quietMode';
+import { quietAwareSend } from '@/lib/api/quietMode';
 import { isQuietRoute } from '@/features/shell/quietRoute';
 import { createPrefsRepository } from '@/lib/storage/prefs';
 import { createSearchStateRepository } from '@/lib/storage/lastSearch';

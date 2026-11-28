@@ -358,11 +358,6 @@ describe('the registration code boundary', () => {
   // A move that drops the import fails the presence check until its entry goes too.
   const PENDING: [string, string, string[]][] = [
     [
-      'src/features/search/useSearchController.ts',
-      '@/lib/regis/quietMode',
-      ['automaticReferenceRead'],
-    ],
-    [
       'src/lib/messaging/protocol.ts',
       '../regis/buildVerdict',
       ['hostBuildVerdictSchema'],
