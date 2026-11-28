@@ -86,7 +86,13 @@ describe('ErrorBoundary', () => {
         <div>
           <button type="button">launcher</button>
           <ErrorBoundary
-            fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
+            fallback={(reset) => (
+              <PanelRecoveryCard
+                t={t}
+                body="panel.error.body"
+                onReload={reset}
+              />
+            )}
           >
             <Bomb explode />
           </ErrorBoundary>
@@ -102,10 +108,20 @@ describe('ErrorBoundary', () => {
 describe('PanelRecoveryCard', () => {
   it('fires the reload action from its button', () => {
     const onReload = vi.fn();
-    render(<PanelRecoveryCard t={t} onReload={onReload} />);
+    render(
+      <PanelRecoveryCard t={t} body="panel.error.body" onReload={onReload} />,
+    );
     fireEvent.click(
       screen.getByRole('button', { name: t('panel.error.reload') }),
     );
     expect(onReload).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the sentence it is given under its title', () => {
+    render(
+      <PanelRecoveryCard t={t} body="shortcuts.note" onReload={vi.fn()} />,
+    );
+    expect(screen.getByText(t('shortcuts.note'))).toBeInTheDocument();
+    expect(screen.queryByText(t('panel.error.body'))).not.toBeInTheDocument();
   });
 });
