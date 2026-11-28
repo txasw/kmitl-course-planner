@@ -283,8 +283,10 @@ the owner's approval and admits only `main` and version tags, with read only rep
 The token there is a custom token for the one account with Workers Scripts Edit and Account Settings
 Read, and for the `cecs.sh` zone only, Workers Routes Edit and Zone Read; any other scope is added
 only when a deploy names it. Install, build, and tests run in a job without the environment; the
-deploy job takes the built output as an artifact and sets the token only on its single Wrangler
-deploy step, so no dependency script or test runs while the token is in scope. A rollback to a tag
+deploy job takes the built output as an artifact, reads the Wrangler configuration from the
+released commit rather than from the artifact, installs the pinned Wrangler alone with lifecycle
+scripts disabled, and sets the token only on its single Wrangler deploy step, so no dependency
+script, test, or configured build command runs while the token is in scope. A rollback to a tag
 from before this record deploys that release's static site alone. Workers Builds is disconnected, so
 nothing deploys from a push to `main`, and a landing change goes live with the next release. The
 Worker configuration turns observability and invocation logs off and sets no log push, no tail
