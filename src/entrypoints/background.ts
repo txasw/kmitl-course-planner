@@ -17,14 +17,8 @@ import { createHostCheck } from '@/lib/api/hostCheck';
 import type { RecordedBuild } from '@/lib/regis/fingerprint/fingerprint';
 import { RECORDED_BUILDS } from '@/lib/regis/fingerprint/recorded';
 import { createHostCheckRepository } from '@/lib/storage/hostChecks';
+import { createCoreHandlers } from '@/lib/api/coreHandlers';
 import { createDefaultEnv, createGateway } from '@/lib/api/gateway';
-import {
-  currentTermEndpoint,
-  curriculumEndpoint,
-  departmentEndpoint,
-  facultyEndpoint,
-  subjectOwnerEndpoint,
-} from '@/lib/api/endpoints';
 import {
   requestMessageSchema,
   type RequestMessage,
@@ -119,20 +113,7 @@ export default defineBackground(() => {
   });
 
   const handlers: HandlerMap<RequestMessage, ResponseMap> = {
-    'ref/faculty': (message) => gateway.reference(facultyEndpoint, message),
-    'ref/department': (message) =>
-      gateway.reference(departmentEndpoint, message),
-    'ref/curriculum': (message) =>
-      gateway.reference(curriculumEndpoint, message),
-    'ref/subjectOwner': (message) =>
-      gateway.reference(subjectOwnerEndpoint, message),
-    'ref/currentTerm': (message) =>
-      gateway.reference(currentTermEndpoint, message),
-    'teachTable/query': (message) => gateway.teachTable(message.query, message),
-    'teachTable/cancel': (message) => {
-      gateway.cancelTeachTable(message.query);
-      return Promise.resolve(ok(undefined));
-    },
+    ...createCoreHandlers(gateway),
     'shell/mounted': async (_message, context) =>
       ok(
         await answerMountHandshake(context, {
