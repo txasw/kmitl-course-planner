@@ -27,8 +27,11 @@ export type ResultMap<M extends TypedMessage> = Record<
 >;
 
 // The reply restated from its success value, so the network error built below is a
-// valid reply for every request type without an assertion. For each concrete type it
-// is the same Result the response map names.
+// valid reply for every request type without an assertion. Its error is always
+// ApiError, so it is the same Result the response map names only for an entry whose
+// error is ApiError, as every entry's is today. An entry declared with a narrower
+// error would still type check here and be widened to ApiError, which is also what a
+// caller can receive, since this send may answer any request with a NetworkError.
 type SuccessOf<R> = R extends { readonly ok: true; readonly value: infer V }
   ? V
   : never;
