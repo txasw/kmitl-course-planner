@@ -9,6 +9,7 @@ import {
 import { expectNoSeriousA11yViolations } from '../../../tests/support/axe';
 import { installViewport } from '../../../tests/support/viewport';
 import { PanelPortalContext } from './PanelPortalContext';
+import { DEFAULT_SHELL_CHROME, ShellChromeContext } from './ShellChromeContext';
 import { ShortcutHelp } from './ShortcutHelp';
 import { uiStore } from './uiStore';
 
@@ -53,6 +54,31 @@ describe('ShortcutHelp', () => {
     expect(
       screen.getByText('Shortcuts do not apply while you type in a field.'),
     ).toBeInTheDocument();
+  });
+
+  it('describes Escape with the line the chrome gives', () => {
+    installViewport(1366);
+    act(() => {
+      uiStore.getState().setLanguage('en');
+    });
+    const root = document.createElement('div');
+    document.body.append(root);
+    render(
+      <ShellChromeContext.Provider
+        value={{ ...DEFAULT_SHELL_CHROME, escapeLine: 'tour.menu' }}
+      >
+        <PanelPortalContext.Provider value={root}>
+          <ShortcutHelp onClose={() => undefined} />
+        </PanelPortalContext.Provider>
+      </ShellChromeContext.Provider>,
+    );
+    const rows = screen.getAllByRole('definition');
+    expect(rows[rows.length - 1]).toHaveTextContent(/^Product tour$/);
+    expect(
+      screen.queryByText(
+        'Close the open window, leave the export page, or close the panel',
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('has no serious accessibility violations', async () => {

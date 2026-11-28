@@ -6,11 +6,13 @@
 // question mark. A back gesture closes the help only too, through a history entry it holds
 // above the overlay's, recorded in ADR-0067. The keys show as the labels printed on the
 // keycaps, which read the same under either panel language, so they are data here rather
-// than dictionary entries.
+// than dictionary entries. The Escape row's words come from the panel chrome, since what
+// Escape leaves depends on the root that mounts the panel.
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { ModalDialog } from '@/components/ModalDialog';
 import type { TranslationKey } from '@/lib/i18n/t';
+import { useShellChrome } from './ShellChromeContext';
 import { useBackToClose } from './useBackToClose';
 import { useLayoutTier } from './useLayoutTier';
 import { useTranslation } from './useTranslation';
@@ -34,8 +36,9 @@ const ROWS: readonly ShortcutRow[] = [
     label: 'shortcuts.undo',
   },
   { chords: [['?']], label: 'shortcuts.help' },
-  { chords: [['Esc']], label: 'shortcuts.escape' },
 ];
+
+const ESCAPE_CHORDS: readonly Chord[] = [['Esc']];
 
 const KEYCAP =
   'inline-flex min-w-6 items-center justify-center rounded-kcp border border-border bg-surface-alt px-1.5 py-0.5 font-sans text-xs text-ink';
@@ -47,12 +50,17 @@ interface ShortcutHelpProps {
 export function ShortcutHelp({ onClose }: ShortcutHelpProps) {
   const { t } = useTranslation();
   const tier = useLayoutTier();
+  const { escapeLine } = useShellChrome();
   useBackToClose(true, onClose);
+  const rows: readonly ShortcutRow[] = [
+    ...ROWS,
+    { chords: ESCAPE_CHORDS, label: escapeLine },
+  ];
 
   const body = (
     <div className="flex flex-col gap-4">
       <dl className="flex flex-col gap-3">
-        {ROWS.map((row) => (
+        {rows.map((row) => (
           <div key={row.label} className="flex items-start gap-4">
             <dt className="flex w-32 shrink-0 flex-wrap items-center gap-1">
               {row.chords.map((chord, index) => (

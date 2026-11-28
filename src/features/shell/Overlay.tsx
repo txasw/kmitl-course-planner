@@ -13,6 +13,7 @@ import { Layout } from './Layout';
 import { ShortcutHelp } from './ShortcutHelp';
 import { CrashProbe } from './CrashProbe';
 import { useBottomNavShown } from './mobilePane';
+import { useShellChrome } from './ShellChromeContext';
 import { useTranslation } from './useTranslation';
 import { TOAST_SATELLITES } from './toastStore';
 import { useFocusTrap } from './useFocusTrap';
@@ -52,6 +53,7 @@ export function Overlay({ children }: OverlayProps) {
   const isOpen = useStore(uiStore, (state) => state.isOpen);
   const close = useStore(uiStore, (state) => state.close);
   const { t, language } = useTranslation();
+  const { errorBody } = useShellChrome();
   const panelRef = useRef<HTMLDivElement | null>(null);
   // Track the panel node in state as well, so the portal context updates once the node
   // mounts and floating-ui popups inside the transformed sheet can render into it.
@@ -111,7 +113,9 @@ export function Overlay({ children }: OverlayProps) {
             error in the search, catalog, or planner shows the recovery card while the
             header keeps its close control and the sibling launcher stays alive. */}
         <ErrorBoundary
-          fallback={(reset) => <PanelRecoveryCard t={t} onReload={reset} />}
+          fallback={(reset) => (
+            <PanelRecoveryCard t={t} body={errorBody} onReload={reset} />
+          )}
         >
           {IS_DEBUG ? <CrashProbe /> : null}
           <main
