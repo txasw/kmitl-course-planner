@@ -1,7 +1,7 @@
 // The landing site at https://kcp.cecs.sh/ (ADR-0066), served by Cloudflare Workers
-// static assets with no Worker script. Workers Builds deploys it from main with
-// `pnpm exec wrangler deploy`, the Wrangler version pinned in package.json; the settings
-// are in CONTRIBUTING.md. The same command deploys it by hand from the repository root.
+// static assets with no Worker script. The deploy-site workflow deploys it with
+// `wrangler deploy` when a version is released, using the Wrangler version pinned in the
+// lockfile and reading this file from the released commit; CONTRIBUTING.md describes it.
 {
   "name": "kcp-landing",
   "compatibility_date": "2026-11-01",
