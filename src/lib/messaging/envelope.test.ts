@@ -12,7 +12,10 @@ function sendOver(reply: Transport) {
   const transport = vi.fn(reply);
   return {
     transport,
-    send: createSend<CoreRequestMessage, CoreResponseMap>(transport),
+    send: createSend<CoreRequestMessage, CoreResponseMap>(
+      transport,
+      'the test router',
+    ),
   };
 }
 
@@ -75,7 +78,7 @@ describe('createSend', () => {
         ok: false,
         error: {
           kind: 'network',
-          message: 'the background service sent a malformed reply',
+          message: 'the test router sent a malformed reply',
         },
       });
     },
@@ -95,7 +98,7 @@ describe('createSend', () => {
       ok: false,
       error: {
         kind: 'network',
-        message: 'the background service is unavailable',
+        message: 'the test router is unavailable',
       },
     });
   });

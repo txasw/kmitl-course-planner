@@ -1,7 +1,8 @@
 // The typed send, free of any transport. A program gives it the function that carries
-// a message to its router, and gets back a client that returns the typed Result the
-// router produced. A thrown transport, for example after the extension reloaded under
-// an open page, maps to a NetworkError Result. The reply is checked against the Result
+// a message to its router and the name of what answers, and gets back a client that
+// returns the typed Result the router produced. A thrown transport, for example after
+// the extension reloaded under an open page, maps to a NetworkError Result whose
+// message names that peer, so a log reads the program that failed. The reply is checked against the Result
 // envelope: a true ok flag with an optional value, or a false one carrying a valid
 // tagged error. Anything else, such as the undefined a send resolves to when no
 // listener answers, also maps to a NetworkError.
@@ -51,8 +52,13 @@ export type TypedSend<M extends TypedMessage, R extends ResultMap<M>> = <
  */
 export type CoreSend = TypedSend<CoreRequestMessage, CoreResponseMap>;
 
+/**
+ * Builds the send over a transport. The peer names what answers at the other end, such
+ * as the background service, and opens the message of each network error built here.
+ */
 export function createSend<M extends TypedMessage, R extends ResultMap<M>>(
   transport: Transport,
+  peer: string,
 ): TypedSend<M, R> {
   return async <T extends M['type']>(
     message: Extract<M, { type: T }>,
@@ -65,9 +71,9 @@ export function createSend<M extends TypedMessage, R extends ResultMap<M>>(
       const response = await transport(message);
       return isReply(response)
         ? response
-        : err(networkError('the background service sent a malformed reply'));
+        : err(networkError(`${peer} sent a malformed reply`));
     } catch {
-      return err(networkError('the background service is unavailable'));
+      return err(networkError(`${peer} is unavailable`));
     }
   };
 }
