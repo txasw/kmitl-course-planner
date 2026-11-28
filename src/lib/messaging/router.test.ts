@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   createRouter,
   setDebugDispatch,
@@ -12,6 +12,11 @@ import {
   type RequestMessage,
   type ResponseMap,
 } from './extensionProtocol';
+import {
+  coreRequestMessageSchema,
+  type CoreRequestMessage,
+  type CoreResponseMap,
+} from './protocol';
 
 const RUNTIME_ID = 'kcp-extension-id';
 const sender = { id: RUNTIME_ID };
@@ -148,5 +153,78 @@ describe('createRouter', () => {
         router({ type: 'ref/faculty' }, { id: 'other', tab: { id: 7 } }),
       ).toBeUndefined();
     });
+  });
+});
+
+describe('createRouter over the core and the extension schema', () => {
+  const hostBuild = {
+    type: 'regis/hostBuild',
+    app: 'app.c0ffee01.js',
+    vendors: 'chunk-vendors.7ab4925e.js',
+  };
+
+  function coreRouter() {
+    const handlers: HandlerMap<CoreRequestMessage, CoreResponseMap> = {
+      'ref/faculty': () =>
+        Promise.resolve({ ok: true as const, value: [] as RawFaculty[] }),
+    };
+    return createRouter({
+      schema: coreRequestMessageSchema,
+      handlers,
+      runtimeId: RUNTIME_ID,
+    });
+  }
+
+  it('routes a core message with the core schema', async () => {
+    expect(await coreRouter()({ type: 'ref/faculty' }, sender)).toEqual({
+      ok: true,
+      value: [],
+    });
+  });
+
+  it('rejects the host check and the debug namespace as validation errors on the core schema', async () => {
+    for (const message of [hostBuild, { type: 'debug/getRequestLog' }]) {
+      expect(await coreRouter()(message, sender)).toMatchObject({
+        ok: false,
+        error: { kind: 'validation' },
+      });
+    }
+  });
+
+  it('routes the host check with the extension schema', async () => {
+    const seen: unknown[] = [];
+    const router = createRouter({
+      schema: requestMessageSchema,
+      handlers: {
+        'regis/hostBuild': (message) => {
+          seen.push(message);
+          return Promise.resolve({
+            ok: true as const,
+            value: { status: 'tested' as const },
+          });
+        },
+      },
+      runtimeId: RUNTIME_ID,
+    });
+    expect(await router(hostBuild, sender)).toEqual({
+      ok: true,
+      value: { status: 'tested' },
+    });
+    expect(seen).toEqual([hostBuild]);
+  });
+
+  it('types each handler map over its own union', () => {
+    expectTypeOf<
+      HandlerMap<CoreRequestMessage, CoreResponseMap>
+    >().not.toHaveProperty('regis/hostBuild');
+    expectTypeOf<
+      HandlerMap<CoreRequestMessage, CoreResponseMap>
+    >().not.toHaveProperty('debug/getReport');
+    expectTypeOf<HandlerMap<RequestMessage, ResponseMap>>().toHaveProperty(
+      'regis/hostBuild',
+    );
+    expectTypeOf<HandlerMap<RequestMessage, ResponseMap>>().toHaveProperty(
+      'debug/getReport',
+    );
   });
 });
