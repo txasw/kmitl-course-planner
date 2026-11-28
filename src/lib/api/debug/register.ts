@@ -11,7 +11,10 @@ import {
   type RouterListener,
 } from '../../messaging/router';
 import { err, ok, unknownError } from '../../utils/result';
-import type { RequestMessage } from '../../messaging/protocol';
+import {
+  requestMessageSchema,
+  type RequestMessage,
+} from '../../messaging/protocol';
 import type { ActionClickOutcome, ClickedTab } from '../../shell/actionClick';
 import { createAuditInterceptor } from './audit';
 import { createSimulationInterceptor } from './simulation';
@@ -35,7 +38,12 @@ export function createDebugDispatch(
   state: DebugState,
   clearCache: () => Promise<void>,
 ): DebugDispatch {
-  return (message) => {
+  return (input) => {
+    const parsed = requestMessageSchema.safeParse(input);
+    if (!parsed.success) {
+      return Promise.resolve(err(unknownError('unhandled debug route')));
+    }
+    const message = parsed.data;
     switch (message.type) {
       case 'debug/getRequestLog':
         return Promise.resolve(ok(state.getRequestLog()));
