@@ -20,7 +20,7 @@ import {
   type HelperStatus,
 } from '@/lib/regis/helperStatus';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
-import type { CompanionRoute } from '@/lib/regis/route';
+import type { CompanionRoute } from '@/lib/routing/registrationRoute';
 import { canRecheck, type OffReason } from '@/lib/regis/observerHealth';
 import { fillStore, type FillRun } from './fill/fillRun';
 import { hostStore } from './host/hostStore';

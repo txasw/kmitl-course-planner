@@ -41,7 +41,7 @@ import { activePlanOf } from '@/features/plans/planStoreState';
 import { uiStore } from '@/features/shell/uiStore';
 import { readLocationHash } from '@/features/shell/hostLocation';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
-import { isRegistrationRoute } from '@/lib/regis/route';
+import { isRegistrationRoute } from '@/lib/routing/registrationRoute';
 import { leaveEntryToast } from './leaveEntryToast';
 import { onboardingStore } from './onboardingStore';
 

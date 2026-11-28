@@ -23,7 +23,7 @@ import { HelperViewport } from './HelperViewport';
 import { hostStore } from './host/hostStore';
 import { announce, helperStore, markReady, startVisit } from './helperStore';
 import { useHelperToastFloor } from './helperToastFloor';
-import type { CompanionRoute } from '@/lib/regis/route';
+import type { CompanionRoute } from '@/lib/routing/registrationRoute';
 import { useCompanionRoute } from './useCompanion';
 import { useHelperAnnouncements } from './useHelperAnnouncements';
 import { useHelperModel } from './useHelperModel';

@@ -5,7 +5,7 @@
 // anywhere else it points to the course search page.
 
 import type { ObserverHealth } from './observerHealth';
-import type { CompanionRoute } from './route';
+import type { CompanionRoute } from '../routing/registrationRoute';
 
 /**
  * The bar under the card's header: a page KCP cannot read, a page of another term, or a

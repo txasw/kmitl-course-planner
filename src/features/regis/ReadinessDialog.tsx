@@ -23,7 +23,7 @@ import {
   helperBar,
   pageStale,
 } from '@/lib/regis/helperBar';
-import type { CompanionRoute } from '@/lib/regis/route';
+import type { CompanionRoute } from '@/lib/routing/registrationRoute';
 import { formatLocalDateTime } from '@/features/planner/examText';
 import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { planMenuSlotStore } from '@/features/shell/planMenuSlotStore';

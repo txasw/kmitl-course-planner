@@ -3,7 +3,7 @@
 // the panel subscribes to it so the busy notice follows a host navigation.
 
 import { useSyncExternalStore } from 'react';
-import { isRegistrationRoute } from '@/lib/regis/route';
+import { isRegistrationRoute } from '@/lib/routing/registrationRoute';
 import { readLocationHash } from './hostLocation';
 import { subscribeHashRoute } from '@/features/search/useHashRoute';
 
