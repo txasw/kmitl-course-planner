@@ -53,7 +53,7 @@ describe('createRouter', () => {
   });
 
   it('routes a valid message to its handler', async () => {
-    const router = createRouter({
+    const router = createRouter<RequestMessage, ResponseMap>({
       schema: requestMessageSchema,
       handlers: facultyHandlers(),
       runtimeId: RUNTIME_ID,
@@ -107,7 +107,7 @@ describe('createRouter', () => {
       routedSender: MessageSender,
     ): Promise<HandlerContext[]> {
       const seen: HandlerContext[] = [];
-      const router = createRouter({
+      const router = createRouter<RequestMessage, ResponseMap>({
         schema: requestMessageSchema,
         handlers: {
           'ref/faculty': (_message, context) => {
@@ -144,7 +144,7 @@ describe('createRouter', () => {
     });
 
     it('still drops a foreign sender that carries a tab', () => {
-      const router = createRouter({
+      const router = createRouter<RequestMessage, ResponseMap>({
         schema: requestMessageSchema,
         handlers: facultyHandlers(),
         runtimeId: RUNTIME_ID,
@@ -168,7 +168,7 @@ describe('createRouter over the core and the extension schema', () => {
       'ref/faculty': () =>
         Promise.resolve({ ok: true as const, value: [] as RawFaculty[] }),
     };
-    return createRouter({
+    return createRouter<CoreRequestMessage, CoreResponseMap>({
       schema: coreRequestMessageSchema,
       handlers,
       runtimeId: RUNTIME_ID,
@@ -193,7 +193,7 @@ describe('createRouter over the core and the extension schema', () => {
 
   it('routes the host check with the extension schema', async () => {
     const seen: unknown[] = [];
-    const router = createRouter({
+    const router = createRouter<RequestMessage, ResponseMap>({
       schema: requestMessageSchema,
       handlers: {
         'regis/hostBuild': (message) => {
@@ -211,6 +211,21 @@ describe('createRouter over the core and the extension schema', () => {
       value: { status: 'tested' },
     });
     expect(seen).toEqual([hostBuild]);
+  });
+
+  it('checks a handler against the response map rather than inferring it', () => {
+    interface WrongHandlers {
+      'ref/faculty': () => Promise<number>;
+    }
+    // Left out, the response map defaults to never, so no handler widens it.
+    expectTypeOf<WrongHandlers>().not.toExtend<
+      Parameters<typeof createRouter<RequestMessage>>[0]['handlers']
+    >();
+    expectTypeOf<WrongHandlers>().not.toExtend<
+      Parameters<
+        typeof createRouter<RequestMessage, ResponseMap>
+      >[0]['handlers']
+    >();
   });
 
   it('types each handler map over its own union', () => {

@@ -146,7 +146,7 @@ export default defineBackground(() => {
       ok(await hostCheck.check({ app: message.app, vendors: message.vendors })),
   };
 
-  const router = createRouter({
+  const router = createRouter<RequestMessage, ResponseMap>({
     schema: requestMessageSchema,
     handlers,
     runtimeId: browser.runtime.id,
