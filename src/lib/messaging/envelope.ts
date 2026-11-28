@@ -9,7 +9,11 @@
 // from data it already validated; the caller never sees a raw exception.
 
 import { err, networkError, type Result } from '../utils/result';
-import { resultEnvelopeSchema } from './protocol';
+import {
+  resultEnvelopeSchema,
+  type CoreRequestMessage,
+  type CoreResponseMap,
+} from './protocol';
 import type { TypedMessage } from './router';
 
 /** Carries one message to a router and resolves to whatever came back. */
@@ -39,6 +43,13 @@ export type TypedSend<M extends TypedMessage, R extends ResultMap<M>> = <
 >(
   message: Extract<M, { type: T }>,
 ) => Promise<Reply<R[T]>>;
+
+/**
+ * The send over the core messages alone. Shared code that sends only core messages
+ * takes this, so a program that carries the core protocol can supply its own send,
+ * and the extension's send, whose union is wider, is assignable to it.
+ */
+export type CoreSend = TypedSend<CoreRequestMessage, CoreResponseMap>;
 
 export function createSend<M extends TypedMessage, R extends ResultMap<M>>(
   transport: Transport,

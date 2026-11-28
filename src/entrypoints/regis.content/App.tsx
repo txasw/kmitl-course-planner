@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { Launcher } from '@/features/shell/Launcher';
 import { ShellChromeContext } from '@/features/shell/ShellChromeContext';
@@ -46,7 +47,8 @@ import { extensionChrome } from './extensionChrome';
 interface AppProps {
   prefs: PrefsRepository;
   plans: PlanPersistenceDeps;
-  search: SearchDeps;
+  /** The search dependencies with the extension send the host check and drawer need. */
+  search: SearchDeps<TypedSend>;
   onboarding: OnboardingPersistenceDeps;
   handshake: WorkerHandshakeDeps;
   welcome: WelcomeClaimDeps;
@@ -99,7 +101,7 @@ export function App({
           <ProductTour record={onboarding.record} />
           <ReadinessLayer />
         </Overlay>
-        <DiagnosticsGate />
+        <DiagnosticsGate send={search.send} />
         <Toaster />
         <WelcomeLayer />
       </SearchDepsProvider>

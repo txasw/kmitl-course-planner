@@ -1,5 +1,10 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import { createSend, type Transport, type TypedSend } from './envelope';
+import {
+  createSend,
+  type CoreSend,
+  type Transport,
+  type TypedSend,
+} from './envelope';
 import type { CoreRequestMessage, CoreResponseMap } from './protocol';
 import type { RequestMessage, ResponseMap } from './extensionProtocol';
 
@@ -100,7 +105,6 @@ describe('createSend', () => {
     expectTypeOf(send({ type: 'ref/faculty' })).resolves.toEqualTypeOf<
       CoreResponseMap['ref/faculty']
     >();
-    type CoreSend = TypedSend<CoreRequestMessage, CoreResponseMap>;
     type ExtensionSend = TypedSend<RequestMessage, ResponseMap>;
     expectTypeOf<Parameters<CoreSend>[0]>().toEqualTypeOf<CoreRequestMessage>();
     expectTypeOf<
@@ -109,5 +113,14 @@ describe('createSend', () => {
     expectTypeOf<
       Extract<RequestMessage, { type: 'regis/hostBuild' }>
     >().not.toExtend<Parameters<CoreSend>[0]>();
+  });
+
+  it('lets a wider send stand in where shared code takes the core send', () => {
+    type ExtensionSend = TypedSend<RequestMessage, ResponseMap>;
+    expectTypeOf(
+      sendOver(() => Promise.resolve(null)).send,
+    ).toEqualTypeOf<CoreSend>();
+    expectTypeOf<ExtensionSend>().toExtend<CoreSend>();
+    expectTypeOf<CoreSend>().not.toExtend<ExtensionSend>();
   });
 });

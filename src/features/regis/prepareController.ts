@@ -7,7 +7,7 @@
 // (ADR-0076), and every read still goes through the background gateway.
 
 import type { Plan } from '@/lib/domain/plan';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import type { Translate } from '@/lib/i18n/t';
 import {
   prepareRefused,
@@ -33,7 +33,7 @@ function pause(ms: number): Promise<void> {
 /** Run the prepare action for a plan, unless a run is already in flight. */
 export function startPrepare(
   plan: Plan,
-  send: TypedSend,
+  send: CoreSend,
   t: Translate,
   source: PrepareSource = 'planner',
 ): void {
@@ -78,7 +78,7 @@ export function startPrepare(
 export function startHelperPrepare(
   event: { isTrusted: boolean },
   plan: Plan,
-  send: TypedSend,
+  send: CoreSend,
   t: Translate,
 ): boolean {
   if (!event.isTrusted || current !== null) return false;

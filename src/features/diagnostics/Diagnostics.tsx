@@ -10,10 +10,10 @@ import { useEffect, useState } from 'react';
 import { useStore } from 'zustand';
 import { Bug, RefreshCw, X } from 'lucide-react';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
-import { useSearchDeps } from '@/features/search/SearchDepsContext';
 import { debugMenuStore } from '@/features/shell/debugMenuStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { uiStore } from '@/features/shell/uiStore';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { FOCUS_OUTLINE, FOCUS_RING } from '@/lib/ui/focus';
 import { downloadText } from '@/lib/utils/download';
 import { isSimulationArmed, useDiagnosticsData } from './useDiagnosticsData';
@@ -38,8 +38,12 @@ const TABS: { id: Tab; label: string }[] = [
 
 const ACTION = `rounded-kcp border border-border px-2 py-1 text-xs text-ink hover:bg-surface-alt ${FOCUS_RING}`;
 
-export function Diagnostics() {
-  const { send } = useSearchDeps();
+interface DiagnosticsProps {
+  /** The extension send, which carries the debug messages the drawer reads and sets. */
+  send: TypedSend;
+}
+
+export function Diagnostics({ send }: DiagnosticsProps) {
   const { data, refresh, setSimulation } = useDiagnosticsData(send);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('requests');

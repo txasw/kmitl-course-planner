@@ -26,7 +26,7 @@ import {
 import { toCurrentTerm } from '@/lib/domain/schemas';
 import type { TeachTableRoute } from '@/lib/routing/parseTeachTableRoute';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import type { AsyncState } from '@/lib/utils/async';
 import type { Result } from '@/lib/utils/result';
 import { automaticReferenceRead } from '@/lib/api/quietMode';
@@ -56,7 +56,7 @@ function needsLoad(list: AsyncState<unknown>): boolean {
   return list.status === 'idle' || list.status === 'error';
 }
 
-export function useReferenceData(send: TypedSend): () => void {
+export function useReferenceData(send: CoreSend): () => void {
   const loadAll = useCallback(
     (automatic: boolean) => {
       const state = searchStore.getState();

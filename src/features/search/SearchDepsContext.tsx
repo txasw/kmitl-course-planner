@@ -4,11 +4,16 @@
 // of the browser binding and tests inject fakes without mocking the polyfill.
 
 import { createContext, useContext, type ReactNode } from 'react';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import type { SearchStateRepository } from '@/lib/storage/lastSearch';
 
-export interface SearchDeps {
-  send: TypedSend;
+/**
+ * The dependencies, typed by the core send every consumer here needs. A program whose
+ * send carries more messages names its own send type, as the extension root does, and
+ * that value still provides this context.
+ */
+export interface SearchDeps<Send extends CoreSend = CoreSend> {
+  send: Send;
   repo: SearchStateRepository;
 }
 

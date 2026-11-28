@@ -15,10 +15,6 @@ import { emptyByKind } from '@/lib/contract/report';
 import { ok } from '@/lib/utils/result';
 import { uiStore } from '@/features/shell/uiStore';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
-import {
-  SearchDepsProvider,
-  type SearchDeps,
-} from '@/features/search/SearchDepsContext';
 import { debugMenuStore } from '@/features/shell/debugMenuStore';
 import { Diagnostics } from './Diagnostics';
 
@@ -108,13 +104,6 @@ function fakeSend(mutationId: string | null): TypedSend {
   return handler as unknown as TypedSend;
 }
 
-function deps(mutationId: string | null = null): SearchDeps {
-  return {
-    send: fakeSend(mutationId),
-    repo: { load: () => Promise.resolve(null), save: () => Promise.resolve() },
-  };
-}
-
 afterEach(() => {
   cleanup();
   act(() => {
@@ -124,11 +113,7 @@ afterEach(() => {
 
 describe('Diagnostics drawer', () => {
   it('steps the trigger aside while the search page coach mark shows', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     act(() => {
       onboardingStore.getState().setCoachMarkOpen(true);
     });
@@ -142,11 +127,7 @@ describe('Diagnostics drawer', () => {
   });
 
   it('leaves the panel for the header menu slot while the panel is open', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     act(() => {
       uiStore.getState().open();
     });
@@ -165,22 +146,14 @@ describe('Diagnostics drawer', () => {
   });
 
   it('empties the menu slot when it unmounts', () => {
-    const { unmount } = render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    const { unmount } = render(<Diagnostics send={fakeSend(null)} />);
     expect(debugMenuStore.getState().item).not.toBeNull();
     unmount();
     expect(debugMenuStore.getState().item).toBeNull();
   });
 
   it('steps the trigger aside while the product tour shows', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     act(() => {
       onboardingStore.getState().startTour();
     });
@@ -194,11 +167,7 @@ describe('Diagnostics drawer', () => {
   });
 
   it('surfaces a missing field in the report and sets the launcher badge', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     fireEvent.click(screen.getByRole('button', { name: 'Diagnostics' }));
     fireEvent.click(screen.getByRole('button', { name: 'Data quality' }));
     expect(await screen.findByText('missing_field')).toBeInTheDocument();
@@ -207,11 +176,7 @@ describe('Diagnostics drawer', () => {
   });
 
   it('shows the raw and normalized payloads side by side', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     fireEvent.click(screen.getByRole('button', { name: 'Diagnostics' }));
     fireEvent.click(screen.getByRole('button', { name: 'Raw vs normalized' }));
     expect(
@@ -223,11 +188,7 @@ describe('Diagnostics drawer', () => {
   });
 
   it('rehydrates the simulation controls from the worker', async () => {
-    render(
-      <SearchDepsProvider value={deps('drop_teach_time2')}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend('drop_teach_time2')} />);
     // The trigger reflects the armed simulation once the worker state loads.
     const trigger = await screen.findByRole('button', {
       name: 'Diagnostics, simulation armed',
@@ -240,11 +201,7 @@ describe('Diagnostics drawer', () => {
   });
 
   it('keeps the armed mutation after switching tabs and returning', async () => {
-    render(
-      <SearchDepsProvider value={deps()}>
-        <Diagnostics />
-      </SearchDepsProvider>,
-    );
+    render(<Diagnostics send={fakeSend(null)} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Diagnostics' }));
     fireEvent.click(screen.getByRole('button', { name: 'Simulation' }));
     fireEvent.change(screen.getByRole('combobox', { name: 'Mutation' }), {

@@ -13,9 +13,17 @@
 // drawer in a lazy initializer that tree shaking could not remove.
 
 import { useEffect, useState, type ComponentType } from 'react';
+import type { TypedSend } from '@/lib/messaging/sendTyped';
 
-export function DiagnosticsGate() {
-  const [Diagnostics, setDiagnostics] = useState<ComponentType | null>(null);
+interface DiagnosticsGateProps {
+  /** The extension send, since the drawer's messages are outside the core protocol. */
+  send: TypedSend;
+}
+
+export function DiagnosticsGate({ send }: DiagnosticsGateProps) {
+  const [Diagnostics, setDiagnostics] = useState<ComponentType<{
+    send: TypedSend;
+  }> | null>(null);
 
   useEffect(() => {
     if (__KCP_DEBUG__) {
@@ -32,5 +40,5 @@ export function DiagnosticsGate() {
     return undefined;
   }, []);
 
-  return Diagnostics ? <Diagnostics /> : null;
+  return Diagnostics ? <Diagnostics send={send} /> : null;
 }

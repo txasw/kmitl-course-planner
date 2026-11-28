@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react';
 import type { Plan } from '@/lib/domain/plan';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import { isQuietRoute } from '@/features/shell/quietRoute';
 import { uiStore } from '@/features/shell/uiStore';
 import { planStore } from './planStore';
@@ -21,7 +21,7 @@ function activePlan(): Plan | null {
   return state.plans.find((plan) => plan.id === state.activePlanId) ?? null;
 }
 
-export function useRevalidationTriggers(send: TypedSend): void {
+export function useRevalidationTriggers(send: CoreSend): void {
   useEffect(() => {
     const deps = { send, now: () => new Date().toISOString() };
     const maybeRun = (): void => {
