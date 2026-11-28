@@ -325,8 +325,10 @@ describe('the registration code boundary', () => {
 
   it.each([
     'src/features/shell/Toaster.tsx',
+    'src/features/shell/quietRoute.ts',
     'src/features/plans/PlanSwitcher.tsx',
     'src/features/search/Combobox.tsx',
+    'src/features/search/useSearchController.ts',
     'src/features/planner/BlockContextMenu.tsx',
     'src/features/catalog/CatalogPanel.tsx',
     'src/lib/api/gateway.ts',
