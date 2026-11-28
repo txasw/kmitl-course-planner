@@ -40,6 +40,12 @@ describe('sendTyped', () => {
   it('maps an unavailable worker to a network error', async () => {
     sendMessage.mockRejectedValue(new Error('no receiver'));
     const result = await sendTyped({ type: 'ref/faculty' });
-    expect(result).toMatchObject({ ok: false, error: { kind: 'network' } });
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        kind: 'network',
+        message: 'the background service is unavailable',
+      },
+    });
   });
 });

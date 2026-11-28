@@ -9,6 +9,7 @@ import type { RequestMessage, ResponseMap } from './extensionProtocol';
 // unknown and checked against the Result envelope before it is returned.
 export const sendTyped = createSend<RequestMessage, ResponseMap>(
   (message): Promise<unknown> => browser.runtime.sendMessage(message),
+  'the background service',
 );
 
 /** The extension's typed send signature, which UI code takes as a dependency. */
