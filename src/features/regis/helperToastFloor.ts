@@ -6,12 +6,17 @@
 // covers the card's controls, or above the launcher when the card is collapsed or so tall
 // that no toast fits above it. The
 // distance is measured from the region's own box and the card's or launcher's top, so it
-// follows the card's height and the visible part of a wide page as they change.
+// follows the card's height and the visible part of a wide page as they change. The
+// helper finds the region by its id in the root it renders into and publishes the
+// distance to the toast floor slot, which the region reads, so the shared toast region
+// imports nothing of the helper.
 
-import { useLayoutEffect, useState, type RefObject } from 'react';
+import { useLayoutEffect, type RefObject } from 'react';
 import { useStore } from 'zustand';
 import { BREAKPOINTS, minWidthQuery } from '@/lib/ui/breakpoints';
 import { LAUNCHER_ID } from '@/features/shell/Launcher';
+import { toastFloorStore } from '@/features/shell/toastFloorStore';
+import { TOAST_REGION_ID } from '@/features/shell/toastStore';
 import { rootOf } from '@/features/shell/useFocusTrap';
 import { uiStore } from '@/features/shell/uiStore';
 import { useMediaQuery } from '@/features/shell/useMediaQuery';
@@ -24,10 +29,19 @@ export const HELPER_TOAST_GAP = 12;
 /** The room a toast needs above the card, its gap included, before it floats there. */
 const TOAST_ROOM = 72;
 
-/** The region's bottom offset in pixels on a helper page on a phone, or null elsewhere. */
+function publish(floor: number | null): void {
+  const store = toastFloorStore.getState();
+  if (store.floor !== floor) store.setFloor(floor);
+}
+
+/**
+ * Publishes the region's bottom offset in pixels on a helper page on a phone, and null
+ * elsewhere. The anchor is any node the helper renders, through which it finds the root
+ * that holds the region.
+ */
 export function useHelperToastFloor(
-  regionRef: RefObject<HTMLElement | null>,
-): number | null {
+  anchorRef: RefObject<HTMLElement | null>,
+): void {
   const route = useCompanionRoute();
   const panelOpen = useStore(uiStore, (state) => state.isOpen);
   const phone = !useMediaQuery(minWidthQuery(BREAKPOINTS.sm));
@@ -36,19 +50,19 @@ export function useHelperToastFloor(
   const ready = useStore(helperStore, (state) => state.ready);
   const view = useStore(helperStore, (state) => state.view);
   const active = route !== null && !panelOpen && phone && !hidden;
-  const [floor, setFloor] = useState<number | null>(null);
 
   useLayoutEffect(() => {
-    const region = regionRef.current;
-    const root = region === null ? null : rootOf(region);
-    if (!active || region === null || root === null) {
-      setFloor(null);
+    const anchor = anchorRef.current;
+    const root = anchor === null ? null : rootOf(anchor);
+    const region = root?.getElementById(TOAST_REGION_ID) ?? null;
+    if (!active || root === null || region === null) {
+      publish(null);
       return undefined;
     }
     const target = () =>
       root.getElementById(CARD_ID) ?? root.getElementById(LAUNCHER_ID);
     // The card, unless it leaves no room above it on the screen, then the launcher.
-    const anchor = () => {
+    const above = () => {
       const card = root.getElementById(CARD_ID);
       const launcher = root.getElementById(LAUNCHER_ID);
       const screenTop = window.visualViewport?.offsetTop ?? 0;
@@ -58,9 +72,9 @@ export function useHelperToastFloor(
         : launcher;
     };
     const measure = () => {
-      const over = anchor();
+      const over = above();
       if (over === null) {
-        setFloor(null);
+        publish(null);
         return;
       }
       // The region's bottom edge plus its current offset is the bottom of the box it
@@ -73,7 +87,7 @@ export function useHelperToastFloor(
         0,
         Math.round(base - over.getBoundingClientRect().top + HELPER_TOAST_GAP),
       );
-      setFloor((current) => (current === next ? current : next));
+      publish(next);
     };
     measure();
     const over = target();
@@ -91,8 +105,7 @@ export function useHelperToastFloor(
       viewport?.removeEventListener('resize', measure);
       viewport?.removeEventListener('scroll', measure);
       window.removeEventListener('resize', measure);
+      publish(null);
     };
-  }, [regionRef, active, collapsed, ready, view]);
-
-  return active ? floor : null;
+  }, [anchorRef, active, collapsed, ready, view]);
 }
