@@ -8,9 +8,10 @@
 // than by colour or by the flag alone. Escape closes the menu only, through
 // useEscapeLayer, and returns focus to the trigger, so the overlay behind it stays open.
 // Tab or a press outside closes it and lets focus move on. Below 640 px, where the
-// header hides the brand mark and its version pill, a muted line under the menu shows
-// the extension version. It sits in the popover but outside the menu role, so it is
-// neither an item nor focusable, and a screen reader reads it as a phrase.
+// header hides the brand mark and its badge pill, a muted line under the menu shows the
+// chrome's badge line, such as the extension version. It sits in the popover but
+// outside the menu role, so it is neither an item nor focusable, and a screen reader
+// reads it as a phrase.
 // Under the language group a plain menuitem reopens the product tour (ADR-0074) from its
 // first step. From the export page it returns to editing first, since the tour points at
 // the edit workspace. A debug build adds one more plain menu item after it, the entry to
@@ -29,7 +30,7 @@ import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
 import { debugMenuStore } from './debugMenuStore';
 import { openProductTour } from '@/features/onboarding/openProductTour';
-import { useExtensionVersion } from './ExtensionVersionContext';
+import { useShellChrome } from './ShellChromeContext';
 import { uiStore } from './uiStore';
 import { useEscapeLayer } from './useEscapeLayer';
 import { usePanelPopover } from './usePanelPopover';
@@ -48,7 +49,7 @@ type OpenFocus = 'first' | 'last';
 
 export function HeaderOverflowMenu() {
   const { t } = useTranslation();
-  const version = useExtensionVersion();
+  const { badge } = useShellChrome();
   const language = useStore(uiStore, (state) => state.language);
   const setLanguage = useStore(uiStore, (state) => state.setLanguage);
   const slotItem = useStore(debugMenuStore, (state) => state.item);
@@ -258,13 +259,13 @@ export function HeaderOverflowMenu() {
               </button>
             )}
           </div>
-          {version === null ? null : (
+          {badge === null ? null : (
             <p className="mx-1 mt-1 border-t border-border px-1 pt-1.5 pb-0.5 text-2xs break-words text-ink-muted tabular-nums sm:hidden">
               <span aria-hidden>
-                {fillTemplate(t('header.versionLine'), { version })}
+                {fillTemplate(t(badge.line), badge.values)}
               </span>
               <span className="sr-only">
-                {fillTemplate(t('header.version'), { version })}
+                {fillTemplate(t(badge.phrase), badge.values)}
               </span>
             </p>
           )}

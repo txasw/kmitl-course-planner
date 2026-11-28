@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import type { PrefsRepository } from '@/lib/storage/prefs';
 import { Launcher } from '@/features/shell/Launcher';
-import { ExtensionVersionContext } from '@/features/shell/ExtensionVersionContext';
+import { ShellChromeContext } from '@/features/shell/ShellChromeContext';
 import { Overlay } from '@/features/shell/Overlay';
 import { Toaster } from '@/features/shell/Toaster';
 import { usePrefsPersistence } from '@/features/shell/usePrefsPersistence';
@@ -40,6 +41,7 @@ import {
   useWelcomeClaim,
   type WelcomeClaimDeps,
 } from '@/features/onboarding/useWelcomeClaim';
+import { extensionChrome } from './extensionChrome';
 
 interface AppProps {
   prefs: PrefsRepository;
@@ -62,8 +64,8 @@ interface AppProps {
 // repositories, listens for the worker and sends it the mount handshake, decides
 // whether this document claims the welcome and when the product tour opens in the
 // panel, and provides the search dependencies and
-// the extension version so the deep components stay free of the browser binding. The
-// storage and messaging bindings stay at the entrypoint.
+// the panel chrome with the extension version so the deep components stay free of the
+// browser binding. The storage and messaging bindings stay at the entrypoint.
 export function App({
   prefs,
   plans,
@@ -82,8 +84,9 @@ export function App({
   useHostBuildCheck(search.send);
   useWelcomeClaim(welcome);
   useProductTourStart();
+  const chrome = useMemo(() => extensionChrome(version), [version]);
   return (
-    <ExtensionVersionContext.Provider value={version}>
+    <ShellChromeContext.Provider value={chrome}>
       <SearchDepsProvider value={search}>
         <SearchBoot />
         <RevalidationTriggers />
@@ -100,7 +103,7 @@ export function App({
         <Toaster />
         <WelcomeLayer />
       </SearchDepsProvider>
-    </ExtensionVersionContext.Provider>
+    </ShellChromeContext.Provider>
   );
 }
 
