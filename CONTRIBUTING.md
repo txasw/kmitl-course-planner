@@ -126,22 +126,26 @@ Once Workers Builds is retired, as described below, a merge to `main` alone depl
 
 ### How a deploy runs
 
-The deploy workflow has two jobs. The `build` job checks out the released commit, installs
-the dependencies from the lockfile, checks that `site/` is current, runs
-`wrangler deploy --dry-run` without any credential, and uploads `site/` as an artifact. The
-`deploy` job runs in the GitHub Environment `cloudflare-production`. It installs only the
-Wrangler version pinned in `pnpm-lock.yaml`, outside the repository and with lifecycle
-scripts disabled, reads `wrangler.jsonc` from the released commit, takes `site/` from the
-artifact, and runs `wrangler deploy`. No package from the build job runs in it, and the
-token is set on the single deploy step only. Deploys never overlap, and a running deploy is
-never cancelled.
+The deploy workflow has two jobs. The `build` job runs only from `main`. It checks out the
+released commit and fails unless `main` contains that commit, records the commit, installs
+the dependencies from the lockfile, checks that `site/` is current, and runs
+`wrangler deploy --dry-run` without any credential. The `deploy` job runs in the GitHub
+Environment `cloudflare-production`. It checks out `wrangler.jsonc`, `site/`,
+`package.json`, and `pnpm-lock.yaml` from the recorded commit, installs the dependencies
+again from the lockfile with lifecycle scripts disabled and no cache, so every package
+Wrangler loads matches its locked integrity hash, and runs `wrangler deploy`. It takes
+nothing the build job wrote, so no package from the build job runs in it or changes what it
+publishes, and the token is set on the single deploy step only. The release workflow passes
+the token to the called workflow by name, since a called workflow reads an environment
+secret only when its caller passes it. Deploys never overlap, and a running deploy is never
+cancelled.
 
 The environment `cloudflare-production` has these settings:
 
 | Setting                      | Value                                              |
 | ---------------------------- | -------------------------------------------------- |
 | Required reviewer            | The owner, who approves every deploy               |
-| Deployment branches and tags | `main` and `v*` only                               |
+| Deployment branches and tags | `main` only, since both deploy paths run on `main` |
 | Environment secret           | `CLOUDFLARE_API_TOKEN`, the custom token below     |
 | Environment variable         | `CLOUDFLARE_ACCOUNT_ID`, the Cloudflare account id |
 
@@ -164,7 +168,8 @@ environment secret, and delete the old token.
 
 To deploy a released tag again, or to roll back to an earlier one, open Actions, choose
 Deploy site, and run the workflow from `main` with the tag, such as `v1.7.2`. The workflow
-accepts only a tag of the form `v` followed by three numbers separated by dots. The owner
+accepts only a tag of the form `v` followed by three numbers separated by dots whose commit
+`main` contains, and it stops when it is run from any other branch or tag. The owner
 approves the deploy in the environment review before it runs. A tag released before the
 deploy workflow existed deploys its committed `site/` the same way. For an immediate revert,
 the Worker's Deployments page in the Cloudflare dashboard can also restore an earlier
