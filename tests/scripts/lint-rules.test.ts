@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ESLint, Linter } from 'eslint';
+import tseslint from 'typescript-eslint';
 
 // The guards of ADR-0075 live in the lint config, so this test asserts they apply where
 // they must and fires them on small sources. The rule settings are read from the
@@ -308,5 +309,66 @@ describe('the student press issuer', () => {
       'import { x } from "@/lib/storage/regis";',
     );
     expect(messages.join(' ')).toMatch(/stay in memory/);
+  });
+});
+
+describe('the registration code boundary', () => {
+  const REGIS_SOURCES = [
+    'import { regisStore } from "@/features/regis/regisStore";',
+    'import { x } from "@/lib/regis/hostContract";',
+    'import { x } from "../regis/hostContract";',
+    'import { x } from "../../features/regis/helperStore";',
+  ];
+
+  it.each([
+    'src/features/shell/Toaster.tsx',
+    'src/features/plans/PlanSwitcher.tsx',
+    'src/features/search/Combobox.tsx',
+    'src/features/planner/BlockContextMenu.tsx',
+    'src/features/catalog/CatalogPanel.tsx',
+    'src/lib/api/gateway.ts',
+    'src/web/main.tsx',
+  ])('keeps registration code out of %s', async (file) => {
+    for (const source of REGIS_SOURCES) {
+      const messages = await messagesFor(file, source);
+      expect(messages.join(' ')).toMatch(/may not import registration code/);
+    }
+  });
+
+  it('still keeps the press issuer to the fill buttons there', async () => {
+    const messages = await messagesFor(
+      'src/features/shell/Toaster.tsx',
+      'import { issueStudentPress } from "../regis/fill/studentPress";',
+    );
+    expect(messages.join(' ')).toMatch(/Only the fill buttons/);
+  });
+
+  it.each([
+    'src/features/shell/Launcher.tsx',
+    'src/lib/api/hostCheck.ts',
+    'src/lib/api/hostScript.ts',
+  ])('names %s as an extension only exception', async (file) => {
+    for (const source of REGIS_SOURCES) {
+      expect(await messagesFor(file, source)).toEqual([]);
+    }
+  });
+
+  it('allows a type import, which carries no code', async () => {
+    const rules = await rulesFor('src/features/shell/Toaster.tsx');
+    const setting = rules['no-restricted-imports'];
+    if (setting === undefined) throw new Error('no import restriction');
+    const verify = (source: string) =>
+      new Linter()
+        .verify(source, [
+          {
+            languageOptions: { parser: tseslint.parser, sourceType: 'module' },
+            rules: { 'no-restricted-imports': setting },
+          },
+        ])
+        .map((message) => message.message);
+    expect(verify('import type { Kit } from "@/lib/regis/kit";')).toEqual([]);
+    expect(verify('import { Kit } from "@/lib/regis/kit";').join(' ')).toMatch(
+      /may not import registration code/,
+    );
   });
 });

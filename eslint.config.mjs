@@ -148,6 +148,42 @@ const HOST_EGRESS_PATTERNS = [
   '**/diagnostics/**',
 ];
 
+// The shared shell, plan, search, planner, and catalog modules, the core message protocol,
+// the gateway, and the web app stay free of registration code, so the web build reaches
+// none of it: the helper fills the slots they read instead (ADR-0080). A type import
+// carries no code and stays allowed.
+const NO_REGIS =
+  'Shared modules may not import registration code; read a slot the helper fills instead (ADR-0080).';
+const REGIS_IMPORT = {
+  group: ['**/regis/**'],
+  allowTypeImports: true,
+  message: NO_REGIS,
+};
+const REGIS_FREE = [
+  'src/features/shell/**/*.{ts,tsx}',
+  'src/features/plans/**/*.{ts,tsx}',
+  'src/features/search/**/*.{ts,tsx}',
+  'src/features/planner/**/*.{ts,tsx}',
+  'src/features/catalog/**/*.{ts,tsx}',
+  'src/lib/messaging/protocol.ts',
+  'src/lib/api/**/*.{ts,tsx}',
+  'src/web/**/*.{ts,tsx}',
+];
+const REGIS_EXCEPTIONS = [
+  // The launcher hosts the helper's ready state and route, and the web never mounts it.
+  'src/features/shell/Launcher.tsx',
+  // The worker side host check (ADR-0079), which only the extension background imports.
+  'src/lib/api/hostCheck.ts',
+  'src/lib/api/hostScript.ts',
+];
+// These still read the route classifier, quiet mode, and the host check names from
+// lib/regis, which move out of it in their own changes and take these entries with them.
+const REGIS_MOVES_PENDING = [
+  'src/features/shell/quietRoute.ts',
+  'src/features/search/useSearchController.ts',
+  'src/lib/messaging/protocol.ts',
+];
+
 // A focus ring or outline class written by hand, in a string or a template literal.
 // The shared constants hold the one indicator, so the tokens change it in one place.
 const FOCUS_CLASS = String.raw`/focus(-visible|-within)?:(ring|outline)/`;
@@ -338,6 +374,23 @@ export default tseslint.config(
     ignores: ['**/*.test.{ts,tsx}', 'src/features/regis/fill/FillControls.tsx'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [PRESS_ISSUER] }],
+    },
+  },
+
+  // The shared modules stay free of registration code. The press issuer rule rides
+  // along, since this setting replaces the one above for these files.
+  {
+    files: REGIS_FREE,
+    ignores: [
+      '**/*.test.{ts,tsx}',
+      ...REGIS_EXCEPTIONS,
+      ...REGIS_MOVES_PENDING,
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [REGIS_IMPORT, PRESS_ISSUER] },
+      ],
     },
   },
 
