@@ -83,8 +83,8 @@ jobs:
 
   # Deploys the landing site from the released commit, which the tag created above
   # points at, after the owner approves it in the cloudflare-production environment
-  # (ADR-0080). The environment's own secret reaches the called workflow's deploy job, so
-  # this job passes none.
+  # (ADR-0080). A called workflow reads an environment secret only when the caller passes
+  # it, so this job passes the token by name, and only the token, never the store secrets.
   deploy-site:
     name: deploy-site
     needs: release
@@ -94,6 +94,8 @@ jobs:
     uses: ./.github/workflows/deploy-site.yml
     with:
       ref: ${{ github.sha }}
+    secrets:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   # Store publish jobs stay gated behind GitHub Environments with required
   # reviewers. They run only after a release is tagged and a reviewer approves,

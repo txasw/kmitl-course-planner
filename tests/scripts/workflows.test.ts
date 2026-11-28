@@ -105,6 +105,11 @@ describe('deploy-site workflow', () => {
               type: z.literal('string'),
             }),
           }),
+          secrets: z
+            .object({
+              CLOUDFLARE_API_TOKEN: z.object({ required: z.literal(true) }),
+            })
+            .strict(),
         }),
         workflow_dispatch: z.object({
           inputs: z.object({
@@ -237,7 +242,10 @@ describe('release workflow', () => {
     expect(call.needs).toBe('release');
     expect(call.if).toBe("needs.release.outputs.published == 'true'");
     expect(call.with).toEqual({ ref: '${{ github.sha }}' });
-    expect(call.secrets).toBeUndefined();
+    // By name, not inherit, so the store secrets never reach the site deploy.
+    expect(call.secrets).toEqual({
+      CLOUDFLARE_API_TOKEN: '${{ secrets.CLOUDFLARE_API_TOKEN }}',
+    });
     expect(call.permissions).toEqual({ contents: 'read' });
   });
 });
