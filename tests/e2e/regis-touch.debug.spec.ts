@@ -30,18 +30,19 @@ function card(page: Page): Locator {
 }
 
 /**
- * Plan at the planner's desktop size, then open the a1e43722 route at a phone size, its
- * period check running every second.
+ * Plan at the planner's desktop size, then open the route at a phone size, on the tested
+ * a1e43722 build unless another is named, its period check running every second.
  */
 async function openOnPhone(
   page: Page,
   serviceWorker: Worker,
   delay: number,
   size: { width: number; height: number } = PHONE,
+  build = 'a1e43722',
 ): Promise<void> {
   const { term, sections } = await planWithKit(page, serviceWorker, SUBJECTS);
   await page.setViewportSize(size);
-  await page.goto(`${REPLICA_URL}?build=a1e43722&poll=1000#/pre_registration`);
+  await page.goto(`${REPLICA_URL}?build=${build}&poll=1000#/pre_registration`);
   await page.waitForFunction(() => 'replica' in window);
   await page.evaluate(
     ({ next, catalog, wait }) => {
@@ -204,4 +205,53 @@ test('a phone on its side starts folded and opens with nothing cut off', async (
   const cardBox = await card(page).boundingBox();
   if (cardBox === null) throw new Error('no card');
   expect(cardBox.y).toBeGreaterThanOrEqual(0);
+});
+
+// A toast on a helper page on a phone floats above the open card, so the reason a held Add
+// for me gives covers none of the card's controls, and above the launcher once the card
+// folds, so it never covers the checklist count.
+test('a toast floats above the open card, then above the folded launcher', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openPlanner(context);
+  await openOnPhone(page, serviceWorker, 900, PHONE, 'untested');
+  const held = card(page)
+    .getByRole('button', { name: 'เพิ่มให้', exact: true })
+    .first();
+  await expect(held).toHaveAttribute('aria-disabled', 'true');
+  // A held control reads as disabled to Playwright, so the finger taps its centre.
+  const heldBox = await held.boundingBox();
+  if (heldBox === null) throw new Error('no Add for me');
+  await tap(page, {
+    x: heldBox.x + heldBox.width / 2,
+    y: heldBox.y + heldBox.height / 2,
+  });
+  const toast = page.locator('#kcp-toast-region > *');
+  await expect(toast).toBeVisible();
+
+  const bottomOf = async (locator: Locator) => {
+    const box = await locator.boundingBox();
+    if (box === null) throw new Error('no box');
+    return box.y + box.height;
+  };
+  const topOf = async (locator: Locator) => {
+    const box = await locator.boundingBox();
+    if (box === null) throw new Error('no box');
+    return box.y;
+  };
+  // Read once the toast's short rise has settled.
+  await expect
+    .poll(async () => (await topOf(card(page))) - (await bottomOf(toast)))
+    .toBeGreaterThanOrEqual(0);
+
+  // A press on the launcher folds the card, and the toast drops to just above it.
+  const launcher = page.locator('#kcp-launcher');
+  await tap(page, await centreOf(page, '#kcp-launcher'));
+  await expect(card(page)).toBeHidden();
+  await expect(toast).toBeVisible();
+  await expect
+    .poll(async () => (await topOf(launcher)) - (await bottomOf(toast)))
+    .toBeGreaterThanOrEqual(0);
+  await expectNothingForbidden(page);
 });
