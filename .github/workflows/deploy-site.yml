@@ -41,7 +41,9 @@ jobs:
       commit: ${{ steps.commit.outputs.sha }}
     steps:
       # A call passes a commit SHA and a dispatch a tag. Both arrive through env and are
-      # matched as whole strings before anything uses them.
+      # matched as whole strings before anything uses them. Both supported paths run the
+      # workflow file on main: the release workflow runs on a push to main, and a dispatch
+      # is made from main, so a run from any other branch or tag stops here.
       - id: ref
         name: Check the ref to deploy
         env:
@@ -49,6 +51,10 @@ jobs:
           CALL_REF: ${{ inputs.ref }}
           DISPATCH_TAG: ${{ inputs.tag }}
         run: |
+          if [ "$GITHUB_REF" != 'refs/heads/main' ]; then
+            echo "::error::run the deploy from main"
+            exit 1
+          fi
           if [ "$EVENT_NAME" = 'workflow_dispatch' ]; then
             if [[ ! "$DISPATCH_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               echo "::error::the tag must be a release tag such as v1.7.2"
@@ -66,6 +72,16 @@ jobs:
         with:
           ref: ${{ steps.ref.outputs.ref }}
           persist-credentials: false
+          # The whole history and every branch, so the next step can find main.
+          fetch-depth: 0
+      # A tag only has the release form; it can point at any commit, such as one on an
+      # unmerged branch. Only a commit that main contains is deployed.
+      - name: Check the commit is on main
+        run: |
+          if ! git merge-base --is-ancestor HEAD refs/remotes/origin/main; then
+            echo "::error::the commit to deploy must be on main"
+            exit 1
+          fi
       # The deploy job checks out this exact commit, so a tag moved while the deploy waits
       # for approval changes nothing.
       - id: commit

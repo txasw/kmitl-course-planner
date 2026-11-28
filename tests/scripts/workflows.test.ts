@@ -130,6 +130,21 @@ describe('deploy-site workflow', () => {
       '[[ ! "$DISPATCH_TAG" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]]',
     );
     expect(check?.run).toContain('[[ ! "$CALL_REF" =~ ^[0-9a-f]{40}$ ]]');
+    expect(check?.run).toContain(`[ "$GITHUB_REF" != 'refs/heads/main' ]`);
+  });
+
+  it('builds only a commit that main contains', () => {
+    const buildSteps = steps(buildJob);
+    const checkout = buildSteps[1];
+    expect(checkout?.uses).toMatch(/^actions\/checkout@/);
+    expect(checkout?.with?.['fetch-depth']).toBe(0);
+    const onMain = buildSteps[2];
+    expect(onMain?.name).toBe('Check the commit is on main');
+    expect(onMain?.run).toContain(
+      'git merge-base --is-ancestor HEAD refs/remotes/origin/main',
+    );
+    // Recorded for the deploy job only after the check passed.
+    expect(buildSteps[3]?.id).toBe('commit');
   });
 
   it('passes inputs and outputs to scripts only through env', () => {
