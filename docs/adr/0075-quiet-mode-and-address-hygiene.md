@@ -123,3 +123,11 @@ press whether Add for me can run. This is the single request KCP starts by itsel
 registration page. It stays bound by ADR-0079: only on `#/pre_registration`, once per new build per
 browser, never polled, no cookie or referrer, and no registration endpoint. Every other request on
 these pages still waits for the student's press.
+
+## Amendment, 2026-11-28: the classifier and quiet mode moved
+
+ADR-0080 keeps registration code out of the modules the web version shares, and both pieces of
+this record are read by shared code. The route classifier named above as `lib/regis/route.ts` is
+now `lib/routing/registrationRoute.ts`, and quiet mode is now `lib/api/quietMode.ts`, each with its
+test beside it. The code and the policy are unchanged, and both files keep the lint guard that
+refuses any action on a host control.

@@ -455,3 +455,9 @@ registration page stays at L0.
   the list, at a 360 px width in Thai and in English with the text fit scan clean and focus
   unchanged, and the carried label as the hash moves from pre registration to regular registration
   and back.
+
+## Amendment, 2026-11-28: the prepare route scope moved
+
+`prepareRefused`, cited above in `lib/regis/route.ts`, now lives in
+`lib/routing/registrationRoute.ts` with the rest of the route classifier (ADR-0075, ADR-0080). The
+prepare scope it encodes is unchanged.
