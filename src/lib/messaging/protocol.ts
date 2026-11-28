@@ -1,8 +1,8 @@
 // The core contract both sides of the worker boundary import. Request messages are
 // a discriminated union validated at runtime by the worker router; responses are the
 // typed Result values the gateway produces. The debug namespace lives in debugTypes
-// and the extension protocol composes the two, so this module reaches no debug or
-// contract code.
+// and the host check in lib/regis/protocol, and the extension protocol composes them,
+// so this module reaches no debug, contract, or registration code.
 
 import { z } from 'zod';
 import type { Result } from '../utils/result';
@@ -14,11 +14,6 @@ import type {
   RawCurrentTerm,
 } from '../domain/schemas';
 import type { TeachTableResult } from '../api/types';
-import {
-  hostBuildVerdictSchema,
-  type HostBuildVerdict,
-} from '../regis/buildVerdict';
-import { APP_SCRIPT_NAME, VENDOR_SCRIPT_NAME } from '../regis/hostContract';
 
 // The three search modes mirror Section 4.1. Booleans stay booleans here; the
 // endpoint layer serializes the search_all_* flags to the string form the API
@@ -94,13 +89,6 @@ export const coreRequestMessageSchema = z.discriminatedUnion('type', [
     query: teachTableQuerySchema,
   }),
   z.object({ type: z.literal('shell/mounted') }),
-  // The host check (ADR-0079) takes the page's two public script names, each held to
-  // its pattern here and again in the worker, which builds the address itself.
-  z.object({
-    type: z.literal('regis/hostBuild'),
-    app: z.string().regex(APP_SCRIPT_NAME),
-    vendors: z.string().regex(VENDOR_SCRIPT_NAME),
-  }),
   z.object({ type: z.literal('onboarding/claimWelcome') }),
 ]);
 
@@ -139,15 +127,6 @@ export const claimWelcomeReplySchema = z.object({
   value: welcomeClaimSchema,
 });
 
-/**
- * The successful regis/hostBuild reply, checked on receipt, so an error Result and a
- * malformed reply alike leave the build untested.
- */
-export const hostBuildReplySchema = z.object({
-  ok: z.literal(true),
-  value: hostBuildVerdictSchema,
-});
-
 /** The response payload each core request type resolves to, keyed by discriminant. */
 export interface CoreResponseMap {
   'ref/faculty': Result<RawFaculty[]>;
@@ -158,7 +137,6 @@ export interface CoreResponseMap {
   'teachTable/query': Result<TeachTableResult>;
   'teachTable/cancel': Result<void>;
   'shell/mounted': Result<MountHandshake>;
-  'regis/hostBuild': Result<HostBuildVerdict>;
   'onboarding/claimWelcome': Result<WelcomeClaim>;
 }
 
