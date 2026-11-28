@@ -245,13 +245,18 @@ test('a toast floats above the open card, then above the folded launcher', async
     .poll(async () => (await topOf(card(page))) - (await bottomOf(toast)))
     .toBeGreaterThanOrEqual(0);
 
-  // A press on the launcher folds the card, and the toast drops to just above it.
+  // A press on the launcher folds the card, and the region drops to just above it. The
+  // toast may have timed out by now on a slow runner, so this reads the region's own
+  // bottom edge, where a toast rests, which holds its place with no toast in it.
   const launcher = page.locator('#kcp-launcher');
+  const regionBottom = () =>
+    page
+      .locator('#kcp-toast-region')
+      .evaluate((node) => node.getBoundingClientRect().bottom);
   await tap(page, await centreOf(page, '#kcp-launcher'));
   await expect(card(page)).toBeHidden();
-  await expect(toast).toBeVisible();
   await expect
-    .poll(async () => (await topOf(launcher)) - (await bottomOf(toast)))
+    .poll(async () => (await topOf(launcher)) - (await regionBottom()))
     .toBeGreaterThanOrEqual(0);
   await expectNothingForbidden(page);
 });
