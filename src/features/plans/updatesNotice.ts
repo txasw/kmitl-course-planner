@@ -7,7 +7,7 @@
 // of items, across reloads too.
 
 import type { Plan } from '@/lib/domain/plan';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import { unnotifiedReviewIds } from '@/lib/planner/updateReview';
 import { uiStore } from '@/features/shell/uiStore';
 import { planStore } from './planStore';
@@ -56,7 +56,7 @@ export function noticeNewReviews(
 
 /** Run a manual check of a plan, bypassing the throttle and the cache, then ask for the
  * dialog if the check found something new. */
-export async function checkPlanNow(plan: Plan, send: TypedSend): Promise<void> {
+export async function checkPlanNow(plan: Plan, send: CoreSend): Promise<void> {
   const status = await revalidatePlanNow(
     plan,
     { send, now: () => new Date().toISOString() },

@@ -10,7 +10,7 @@
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
 import type { Plan } from '@/lib/domain/plan';
 import type { TeachTableQuery } from '@/lib/messaging/protocol';
-import type { TypedSend } from '@/lib/messaging/sendTyped';
+import type { CoreSend } from '@/lib/messaging/envelope';
 import { withoutRetry } from '@/lib/api/quietMode';
 import { buildRegistrationKit, subjectQuery } from '@/lib/regis/kit';
 import type { RegistrationKit } from '@/lib/regis/kitSchema';
@@ -19,7 +19,7 @@ import type { RegistrationKit } from '@/lib/regis/kitSchema';
 export const PREPARE_PAUSE_MS = 600;
 
 export interface PrepareDeps {
-  send: TypedSend;
+  send: CoreSend;
   now: () => string;
   pause: (ms: number) => Promise<void>;
   /** Whether the host page on screen refuses prepare right now. */
