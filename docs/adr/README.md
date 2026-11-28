@@ -88,3 +88,4 @@ withdrawal note above the original text, which is kept as written.
 77. [Read only observer on the pre registration page](0077-read-only-observer-on-pre-registration.md)
 78. [Student initiated fill on the pre registration page](0078-student-initiated-fill-on-pre-registration.md)
 79. [Function level host check](0079-function-level-host-check.md)
+80. [Web version in Beta at kcp.cecs.sh/app](0080-web-version-in-beta.md)
