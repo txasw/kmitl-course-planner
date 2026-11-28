@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { ESLint, Linter } from 'eslint';
 import tseslint from 'typescript-eslint';
@@ -351,6 +352,54 @@ describe('the registration code boundary', () => {
     for (const source of REGIS_SOURCES) {
       expect(await messagesFor(file, source)).toEqual([]);
     }
+  });
+
+  // The importers whose regis module has not moved yet, each limited to the names it reads.
+  // A move that drops the import fails the presence check until its entry goes too.
+  const PENDING: [string, string, string[]][] = [
+    [
+      'src/features/shell/quietRoute.ts',
+      '@/lib/regis/route',
+      ['isRegistrationRoute'],
+    ],
+    [
+      'src/features/search/useSearchController.ts',
+      '@/lib/regis/quietMode',
+      ['automaticReferenceRead'],
+    ],
+    [
+      'src/lib/messaging/protocol.ts',
+      '../regis/buildVerdict',
+      ['hostBuildVerdictSchema'],
+    ],
+    [
+      'src/lib/messaging/protocol.ts',
+      '../regis/hostContract',
+      ['APP_SCRIPT_NAME', 'VENDOR_SCRIPT_NAME'],
+    ],
+  ];
+
+  it.each(PENDING)(
+    'lets %s import only its names from %s',
+    async (file, from, names) => {
+      const allowed = `import { ${names.join(', ')} } from "${from}";`;
+      expect(await messagesFor(file, allowed)).toEqual([]);
+      const other = await messagesFor(
+        file,
+        `import { another } from "${from}";`,
+      );
+      expect(other.join(' ')).toMatch(/may not import registration code/);
+      for (const source of REGIS_SOURCES) {
+        const messages = await messagesFor(file, source);
+        expect(messages.join(' ')).toMatch(/may not import registration code/);
+      }
+    },
+  );
+
+  it.each(PENDING)('finds %s still importing from %s', (file, from, names) => {
+    const text = readFileSync(file, 'utf8');
+    expect(text).toContain(`from '${from}'`);
+    for (const name of names) expect(text).toContain(name);
   });
 
   it('allows a type import, which carries no code', async () => {
