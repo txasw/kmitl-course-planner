@@ -186,6 +186,8 @@ describe('the host action guard', () => {
     'src/features/regis/host/hostDom.ts',
     'src/features/regis/ChecklistRow.tsx',
     'src/lib/regis/checklist.ts',
+    'src/lib/routing/registrationRoute.ts',
+    'src/lib/api/quietMode.ts',
     'src/entrypoints/regis.content/index.tsx',
   ])('forbids acting on a host control in %s', async (file) => {
     for (const source of HOST_ACTIONS) {
