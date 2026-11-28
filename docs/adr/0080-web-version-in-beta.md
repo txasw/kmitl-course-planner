@@ -279,14 +279,19 @@ A deploy workflow, called by the release workflow when a version is tagged and d
 released tag, builds the landing site and fails if it differs from the committed one, builds the
 app, runs the route, egress, header, and write name tests, runs a dry deploy and scans its output,
 and deploys with Wrangler. It runs in the GitHub Environment `cloudflare-production`, which requires
-the owner's approval and admits only `main` and version tags, with read only repository permissions.
+the owner's approval and admits only `main`, with read only repository permissions. The workflow runs
+from `main` alone and deploys only a commit that `main` contains, and the release workflow passes it
+the token alone, by name, since a called workflow reads an environment secret only when passed it.
 The token there is a custom token for the one account with Workers Scripts Edit and Account Settings
 Read, and for the `cecs.sh` zone only, Workers Routes Edit and Zone Read; any other scope is added
 only when a deploy names it. Install, build, and tests run in a job without the environment; the
-deploy job takes the built output as an artifact, reads the Wrangler configuration from the
-released commit rather than from the artifact, installs the pinned Wrangler alone with lifecycle
-scripts disabled, and sets the token only on its single Wrangler deploy step, so no dependency
-script, test, or configured build command runs while the token is in scope. A rollback to a tag
+deploy job reads the Wrangler configuration and the committed site from the released commit,
+never from a file the build job wrote, installs again from the lockfile with lifecycle scripts
+disabled and no cache, so every package Wrangler loads matches its locked hash, and sets the token
+only on its single Wrangler deploy step, so no dependency script, test, or configured build
+command runs while the token is in scope and no build job package changes what is published. How
+the app and the Worker bundle, which are not committed, reach the deploy job without a build job
+package being able to alter them is decided with the release that adds them. A rollback to a tag
 from before this record deploys that release's static site alone. Workers Builds is disconnected, so
 nothing deploys from a push to `main`, and a landing change goes live with the next release. The
 Worker configuration turns observability and invocation logs off and sets no log push, no tail
