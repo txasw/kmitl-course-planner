@@ -133,7 +133,7 @@ function sameBox(a: Box | null, b: Box): boolean {
  * areas, and at the foot the phone bottom nav as well, so the card rests above the nav with
  * its gutter rather than cutting through the nav labels.
  */
-interface PanelFrame extends Size {
+interface PanelBox extends Size {
   insetTop: number;
   insetBottom: number;
 }
@@ -153,7 +153,7 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
   const direction = useRef<1 | -1>(1);
   const [shown, setShown] = useState<Shown | null>(null);
   const [spot, setSpot] = useState<Box | null>(null);
-  const [frame, setFrame] = useState<PanelFrame | null>(null);
+  const [frame, setFrame] = useState<PanelBox | null>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState(0);
   // Whether the student has moved between steps, after which each step is spoken.
@@ -231,7 +231,7 @@ function OpenProductTour({ record, panel }: OpenProductTourProps) {
         nav === null
           ? 0
           : Math.round(frame.bottom - nav.getBoundingClientRect().top);
-      const measured: PanelFrame = {
+      const measured: PanelBox = {
         width: frame.width,
         height: frame.height,
         insetTop: probe?.offsetTop ?? 0,
