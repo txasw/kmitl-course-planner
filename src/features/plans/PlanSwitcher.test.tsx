@@ -17,6 +17,7 @@ import { installViewport } from '../../../tests/support/viewport';
 import { searchStore } from '@/features/search/searchStore';
 import { PLAN_NAME_MAX } from '@/lib/domain/plan';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { planMenuSlotStore } from '@/features/shell/planMenuSlotStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { planStore } from './planStore';
 import { PlanSwitcher } from './PlanSwitcher';
@@ -66,6 +67,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  planMenuSlotStore.getState().setPrepareRegistration(null);
 });
 
 function seedTwoPlans() {
@@ -377,6 +379,37 @@ describe('PlanSwitcher', () => {
     openMenu();
     expect(
       screen.queryByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the action the helper fills in its slot and closes the menu on press', () => {
+    const prepare = vi.fn<() => void>();
+    act(() => {
+      planStore.getState().hydrate([makePlan({ id: 'a', name: 'A' })]);
+      planStore.getState().setActivePlan('a');
+      planMenuSlotStore.getState().setPrepareRegistration(prepare);
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: 'ตัวช่วยลงทะเบียน' }));
+    expect(prepare).toHaveBeenCalledOnce();
+    expect(
+      screen.queryByRole('button', { name: 'สร้างตาราง' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers no helper action while its slot is empty', () => {
+    act(() => {
+      planStore.getState().hydrate([makePlan({ id: 'a', name: 'A' })]);
+      planStore.getState().setActivePlan('a');
+    });
+    render(<PlanSwitcher />);
+    openMenu();
+    expect(
+      screen.getByRole('button', { name: 'คัดลอกรายการลงทะเบียน' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'ตัวช่วยลงทะเบียน' }),
     ).not.toBeInTheDocument();
   });
 

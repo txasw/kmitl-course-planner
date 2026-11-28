@@ -22,6 +22,7 @@ import {
   makeSection,
 } from '../../../tests/support/domain-builders';
 import { PanelPortalContext } from '@/features/shell/PanelPortalContext';
+import { planMenuSlotStore } from '@/features/shell/planMenuSlotStore';
 import { toastStore } from '@/features/shell/toastStore';
 import { fillStore } from './fill/fillRun';
 import { hostStore } from './host/hostStore';
@@ -310,6 +311,22 @@ describe('the kit bar over data past the age limit', () => {
     act(() => {
       regisStore.getState().setReadinessOpen(false);
     });
+    expect(sends).toBe(0);
+  });
+
+  it('fills the plan menu slot with the prepare card while it is mounted', () => {
+    renderOn('#/pre_registration');
+    const prepare = planMenuSlotStore.getState().prepareRegistration;
+    expect(prepare).not.toBeNull();
+    act(() => {
+      prepare?.();
+    });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      regisStore.getState().setReadinessOpen(false);
+    });
+    cleanup();
+    expect(planMenuSlotStore.getState().prepareRegistration).toBeNull();
     expect(sends).toBe(0);
   });
 });
