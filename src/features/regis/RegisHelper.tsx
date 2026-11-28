@@ -10,9 +10,10 @@
 // registration page, which KCP does not read, it opens at once. The live region is the
 // only source of the helper's announcements; nothing is read out when the card opens on
 // its own. The helper's fixed layers follow the part of the page on screen
-// (HelperViewport).
+// (HelperViewport), and on a phone it raises the toast region above the card or the
+// launcher through the toast floor slot (helperToastFloor).
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from 'zustand';
 import { COARSE_POINTER_QUERY, isPhoneScreen } from '@/lib/ui/breakpoints';
 import { uiStore } from '@/features/shell/uiStore';
@@ -21,6 +22,7 @@ import { HelperCard } from './HelperCard';
 import { HelperViewport } from './HelperViewport';
 import { hostStore } from './host/hostStore';
 import { announce, helperStore, markReady, startVisit } from './helperStore';
+import { useHelperToastFloor } from './helperToastFloor';
 import type { CompanionRoute } from '@/lib/regis/route';
 import { useCompanionRoute } from './useCompanion';
 import { useHelperAnnouncements } from './useHelperAnnouncements';
@@ -57,7 +59,9 @@ export function RegisHelper() {
   const announcement = useStore(helperStore, (state) => state.announcement);
   const model = useHelperModel();
   const { t } = useTranslation();
+  const liveRef = useRef<HTMLParagraphElement>(null);
   useHelperAnnouncements(model, t);
+  useHelperToastFloor(liveRef);
 
   // Each arrival on a helper page, or a move between the two, is a new visit.
   useEffect(() => {
@@ -80,7 +84,12 @@ export function RegisHelper() {
     <>
       <HelperViewport />
       {overlayOpen || collapsed || !ready ? null : <HelperCard model={model} />}
-      <p aria-live="polite" aria-atomic="true" className="sr-only">
+      <p
+        ref={liveRef}
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
         {announcement.text}
       </p>
     </>

@@ -28,7 +28,8 @@
 // padding the sheet body keeps at rest for a toast (sheetToast). On a helper page on a
 // phone, with the panel closed, the region floats above the helper card, or above the
 // launcher while the card is collapsed, so a toast never covers either, and it keeps to
-// the part of a wide page on screen (helperToastFloor, HelperViewport).
+// the part of a wide page on screen. The helper publishes that offset to the toast floor
+// slot, which the region reads, so it imports nothing of the helper (toastFloorStore).
 //
 // The panel focus trap follows the region by its id, so a toast's controls join the Tab
 // order after the panel's last control while the panel is open; Tab reaches an undo
@@ -44,7 +45,6 @@ import { useStore } from 'zustand';
 import { CircleCheck, TriangleAlert, X } from 'lucide-react';
 import { onboardingStore } from '@/features/onboarding/onboardingStore';
 import { planStore } from '@/features/plans/planStore';
-import { useHelperToastFloor } from '@/features/regis/helperToastFloor';
 import type { Translate } from '@/lib/i18n/t';
 import { FOCUS_RING } from '@/lib/ui/focus';
 import { TARGET_SIZE } from '@/lib/ui/target';
@@ -52,6 +52,7 @@ import { TOAST_REGION_ID, toastStore, type Toast } from './toastStore';
 import { useBottomNavShown } from './mobilePane';
 import { useBottomSheetOpen, useToastOverSheetFoot } from './sheetToast';
 import { aboveSafeBottom, useToastOverFoot } from './toastFloor';
+import { toastFloorStore } from './toastFloorStore';
 import { useHoverFocusHold, type HoldHandlers } from './useHoverFocusHold';
 import { uiStore } from './uiStore';
 import { useTranslation } from './useTranslation';
@@ -163,8 +164,7 @@ export function Toaster() {
   const navShown = useBottomNavShown();
   const overFoot = useToastOverFoot();
   const overSheetFoot = useToastOverSheetFoot();
-  const regionRef = useRef<HTMLDivElement>(null);
-  const helperFloor = useHelperToastFloor(regionRef);
+  const helperFloor = useStore(toastFloorStore, (state) => state.floor);
   const bottom =
     overSheetFoot ??
     (overFoot !== null
@@ -222,7 +222,6 @@ export function Toaster() {
 
   return (
     <div
-      ref={regionRef}
       id={TOAST_REGION_ID}
       aria-live="polite"
       aria-atomic="true"

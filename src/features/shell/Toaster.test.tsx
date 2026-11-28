@@ -22,6 +22,7 @@ import { installViewport } from '../../../tests/support/viewport';
 import { useBottomSheetPresence, useSheetToastFoot } from './sheetToast';
 import { useToastFoot } from './toastFloor';
 import { Toaster } from './Toaster';
+import { toastFloorStore } from './toastFloorStore';
 import { toastStore } from './toastStore';
 import { uiStore } from './uiStore';
 
@@ -393,6 +394,21 @@ describe('Toaster', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it('floats at the offset a layer publishes to the floor slot, then returns', () => {
+    const { container } = render(<Toaster />);
+    const region = container.querySelector<HTMLElement>('[aria-live="polite"]');
+    act(() => {
+      toastFloorStore.getState().setFloor(120);
+    });
+    expect(region?.style.bottom).toBe('120px');
+    expect(region).not.toHaveClass('bottom-[max(16px,var(--kcp-safe-bottom))]');
+    act(() => {
+      toastFloorStore.getState().setFloor(null);
+    });
+    expect(region?.style.bottom).toBe('');
+    expect(region).toHaveClass('bottom-[max(16px,var(--kcp-safe-bottom))]');
   });
 
   it('marks the live region with the active language', () => {
