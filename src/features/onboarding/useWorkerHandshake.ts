@@ -15,7 +15,7 @@ import {
 } from '@/lib/messaging/contentRouter';
 import {
   mountedReplySchema,
-  type RequestMessage,
+  type CoreRequestMessage,
 } from '@/lib/messaging/protocol';
 import { formatShortcut } from '@/lib/shell/shortcut';
 import { openPanelAt } from '@/features/shell/openPanel';
@@ -32,7 +32,7 @@ export interface WorkerHandshakeDeps {
   onMessage: ContentMessageEvent;
   /** Sends the handshake; the reply is untrusted until it parses. */
   send: (
-    message: Extract<RequestMessage, { type: 'shell/mounted' }>,
+    message: Extract<CoreRequestMessage, { type: 'shell/mounted' }>,
   ) => Promise<unknown>;
 }
 

@@ -11,7 +11,7 @@ import {
   requestMessageSchema,
   type RequestMessage,
   type ResponseMap,
-} from './protocol';
+} from './extensionProtocol';
 
 const RUNTIME_ID = 'kcp-extension-id';
 const sender = { id: RUNTIME_ID };

@@ -19,7 +19,7 @@ import {
   subjectOwnerListSchema,
 } from '@/lib/domain/schemas';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
-import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { err, httpError, ok } from '@/lib/utils/result';
 import { TARGET_SIZE } from '@/lib/ui/target';

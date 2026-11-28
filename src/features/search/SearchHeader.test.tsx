@@ -9,7 +9,8 @@ import {
   waitFor,
 } from '@testing-library/react';
 import type { NormalizedCatalog } from '@/lib/domain/normalize';
-import type { RequestMessage, TeachTableQuery } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
+import type { TeachTableQuery } from '@/lib/messaging/protocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import { err, httpError, ok, type Result } from '@/lib/utils/result';
 import { CatalogPanel } from '@/features/catalog/CatalogPanel';

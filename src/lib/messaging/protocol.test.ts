@@ -15,10 +15,10 @@ import {
   claimWelcomeReplySchema,
   hostBuildReplySchema,
   mountedReplySchema,
-  requestMessageSchema,
+  coreRequestMessageSchema,
   resultEnvelopeSchema,
   teachTableQuerySchema,
-  type ResponseMap,
+  type CoreResponseMap,
 } from './protocol';
 
 const byClassQuery = {
@@ -83,23 +83,23 @@ describe('teachTableQuerySchema', () => {
   });
 });
 
-describe('requestMessageSchema', () => {
+describe('coreRequestMessageSchema', () => {
   it('accepts a reference request with and without refresh', () => {
     expect(
-      requestMessageSchema.safeParse({ type: 'ref/faculty' }).success,
+      coreRequestMessageSchema.safeParse({ type: 'ref/faculty' }).success,
     ).toBe(true);
     expect(
-      requestMessageSchema.safeParse({ type: 'ref/faculty', refresh: true })
+      coreRequestMessageSchema.safeParse({ type: 'ref/faculty', refresh: true })
         .success,
     ).toBe(true);
     expect(
-      requestMessageSchema.safeParse({ type: 'ref/currentTerm' }).success,
+      coreRequestMessageSchema.safeParse({ type: 'ref/currentTerm' }).success,
     ).toBe(true);
   });
 
   it('accepts a teach table query message', () => {
     expect(
-      requestMessageSchema.safeParse({
+      coreRequestMessageSchema.safeParse({
         type: 'teachTable/query',
         query: byClassQuery,
       }).success,
@@ -108,65 +108,62 @@ describe('requestMessageSchema', () => {
 
   it('carries the no retry and cache only options', () => {
     expect(
-      requestMessageSchema.parse({
+      coreRequestMessageSchema.parse({
         type: 'ref/curriculum',
         cacheOnly: true,
         noRetry: true,
       }),
     ).toEqual({ type: 'ref/curriculum', cacheOnly: true, noRetry: true });
     expect(
-      requestMessageSchema.parse({
+      coreRequestMessageSchema.parse({
         type: 'teachTable/query',
         query: byClassQuery,
         noRetry: true,
       }),
     ).toMatchObject({ noRetry: true });
     expect(
-      requestMessageSchema.safeParse({ type: 'ref/faculty', noRetry: 'yes' })
-        .success,
+      coreRequestMessageSchema.safeParse({
+        type: 'ref/faculty',
+        noRetry: 'yes',
+      }).success,
     ).toBe(false);
   });
 
   it('rejects a teach table message whose nested query is invalid', () => {
     expect(
-      requestMessageSchema.safeParse({
+      coreRequestMessageSchema.safeParse({
         type: 'teachTable/query',
         query: { ...byClassQuery, mode: 'nope' },
       }).success,
     ).toBe(false);
   });
 
-  it('accepts the debug simulation controls with a null id', () => {
+  it('leaves the debug namespace to the extension protocol', () => {
     expect(
-      requestMessageSchema.safeParse({
-        type: 'debug/setFixture',
-        fixtureId: null,
-      }).success,
-    ).toBe(true);
-    expect(
-      requestMessageSchema.safeParse({ type: 'debug/getRequestLog' }).success,
-    ).toBe(true);
+      coreRequestMessageSchema.safeParse({ type: 'debug/getRequestLog' })
+        .success,
+    ).toBe(false);
   });
 
   it('accepts the mount handshake with no payload', () => {
     expect(
-      requestMessageSchema.safeParse({ type: 'shell/mounted' }).success,
+      coreRequestMessageSchema.safeParse({ type: 'shell/mounted' }).success,
     ).toBe(true);
   });
 
   it('accepts the welcome claim with no payload', () => {
     expect(
-      requestMessageSchema.safeParse({ type: 'onboarding/claimWelcome' })
+      coreRequestMessageSchema.safeParse({ type: 'onboarding/claimWelcome' })
         .success,
     ).toBe(true);
   });
 
   it('rejects an unknown message type and a non object', () => {
     expect(
-      requestMessageSchema.safeParse({ type: 'ref/unknown' }).success,
+      coreRequestMessageSchema.safeParse({ type: 'ref/unknown' }).success,
     ).toBe(false);
-    expect(requestMessageSchema.safeParse('nope').success).toBe(false);
-    expect(requestMessageSchema.safeParse(null).success).toBe(false);
+    expect(coreRequestMessageSchema.safeParse('nope').success).toBe(false);
+    expect(coreRequestMessageSchema.safeParse(null).success).toBe(false);
   });
 });
 
@@ -178,7 +175,7 @@ describe('the host check message', () => {
   };
 
   it('accepts the two public script names', () => {
-    expect(requestMessageSchema.safeParse(pair).success).toBe(true);
+    expect(coreRequestMessageSchema.safeParse(pair).success).toBe(true);
   });
 
   it.each([
@@ -188,9 +185,9 @@ describe('the host check message', () => {
     ['an app name for the vendors', { vendors: 'app.c0ffee01.js' }],
     ['a short hash', { app: 'app.c0ffee.js' }],
   ])('rejects %s', (_name, change) => {
-    expect(requestMessageSchema.safeParse({ ...pair, ...change }).success).toBe(
-      false,
-    );
+    expect(
+      coreRequestMessageSchema.safeParse({ ...pair, ...change }).success,
+    ).toBe(false);
   });
 
   it('checks the reply down to the verdict and its parts', () => {
@@ -301,7 +298,7 @@ describe('resultEnvelopeSchema', () => {
 
 describe('teach table response', () => {
   it('carries the catalog with its fetch time', () => {
-    expectTypeOf<ResponseMap['teachTable/query']>().toEqualTypeOf<
+    expectTypeOf<CoreResponseMap['teachTable/query']>().toEqualTypeOf<
       Result<TeachTableResult>
     >();
   });

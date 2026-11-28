@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { RequestMessage } from '../messaging/protocol';
+import type { RequestMessage } from '../messaging/extensionProtocol';
 import type { TypedSend } from '../messaging/sendTyped';
 import { ok } from '../utils/result';
 import {

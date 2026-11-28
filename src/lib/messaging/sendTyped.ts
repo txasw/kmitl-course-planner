@@ -10,11 +10,8 @@
 
 import { browser } from 'wxt/browser';
 import { err, networkError } from '../utils/result';
-import {
-  resultEnvelopeSchema,
-  type RequestMessage,
-  type ResponseMap,
-} from './protocol';
+import { resultEnvelopeSchema } from './protocol';
+import type { RequestMessage, ResponseMap } from './extensionProtocol';
 
 export async function sendTyped<T extends RequestMessage['type']>(
   message: Extract<RequestMessage, { type: T }>,

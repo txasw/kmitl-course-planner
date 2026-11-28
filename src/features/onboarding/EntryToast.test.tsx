@@ -13,7 +13,7 @@ import {
   ENTRY_TOAST_DELAY_MS,
   ENTRY_TOAST_VISIBLE_MS,
 } from '@/lib/onboarding/entryToast';
-import type { RequestMessage } from '@/lib/messaging/protocol';
+import type { RequestMessage } from '@/lib/messaging/extensionProtocol';
 import type { TypedSend } from '@/lib/messaging/sendTyped';
 import {
   defaultCategoryForm,
