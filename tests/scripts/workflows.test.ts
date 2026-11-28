@@ -184,36 +184,34 @@ describe('deploy-site workflow', () => {
       CLOUDFLARE_ACCOUNT_ID: '${{ vars.CLOUDFLARE_ACCOUNT_ID }}',
       WRANGLER_SEND_METRICS: 'false',
     });
-    expect(step?.run).toBe(
-      '"${RUNNER_TEMP}/wrangler/node_modules/.bin/wrangler" deploy',
-    );
+    expect(step?.run).toBe('./node_modules/.bin/wrangler deploy');
   });
 
-  it('runs no package the build job installed while the token is in scope', () => {
+  it('runs only Wrangler, installed from the lockfile, while the token is in scope', () => {
     const deploySteps = steps(deployJob);
-    for (const step of deploySteps) {
-      expect(step.run ?? '', step.name).not.toMatch(/\bpnpm\b|npx|npm ci/);
-    }
-    const install = deploySteps.find(
-      (step) => step.name === 'Install Wrangler',
-    );
-    expect(install?.run).toContain('--ignore-scripts');
-    expect(install?.run).toContain('--prefix "${RUNNER_TEMP}/wrangler"');
-    expect(install?.run).toContain('"wrangler@${WRANGLER_VERSION}"');
-    expect(install?.env).toEqual({
-      WRANGLER_VERSION: '${{ needs.build.outputs.wrangler-version }}',
-    });
-
-    // The configuration and the pages come from the checked commit.
-    const checkout = deploySteps.find((step) =>
-      step.uses?.startsWith('actions/checkout@'),
-    );
+    // The checkout comes first, so every later step works on the checked commit alone.
+    const checkout = deploySteps[0];
+    expect(checkout?.uses).toMatch(/^actions\/checkout@/);
     expect(checkout?.with).toEqual({
       ref: '${{ needs.build.outputs.commit }}',
       'persist-credentials': false,
-      'sparse-checkout': '/wrangler.jsonc\n/site/\n',
+      'sparse-checkout':
+        '/wrangler.jsonc\n/site/\n/package.json\n/pnpm-lock.yaml\n',
       'sparse-checkout-cone-mode': false,
     });
+
+    const runs = deploySteps.flatMap((step) =>
+      step.run === undefined ? [] : [step.run],
+    );
+    expect(runs).toEqual([
+      'pnpm install --frozen-lockfile --ignore-scripts',
+      './node_modules/.bin/wrangler deploy',
+    ]);
+    for (const step of deploySteps) {
+      if (step.uses?.startsWith('actions/setup-node@') === true) {
+        expect(step.with).toEqual({ 'node-version': 24 });
+      }
+    }
   });
 
   it('gives the build job no channel into the deploy but the commit', () => {
@@ -222,10 +220,7 @@ describe('deploy-site workflow', () => {
         /^actions\/(?:upload|download)-artifact@|^actions\/cache/,
       );
     }
-    expect(Object.keys(buildJob.outputs ?? {})).toEqual([
-      'commit',
-      'wrangler-version',
-    ]);
+    expect(Object.keys(buildJob.outputs ?? {})).toEqual(['commit']);
   });
 
   it('checks out without persisting the repository token', () => {
