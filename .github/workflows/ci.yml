@@ -27,8 +27,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm format:check
-      # Workers Builds deploys the committed site/ from main as it is, so main must never
-      # hold pages older than their sources. The build needs no extension build and no
+      # The release deploy publishes the committed site/ as it is, so main must never hold
+      # pages older than their sources. The build needs no extension build and no
       # browser, only the sources and the encoded images already in the repository.
       - name: Check the committed landing site is current
         run: |

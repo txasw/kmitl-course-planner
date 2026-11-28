@@ -104,58 +104,85 @@ marketing language. Use icon components for visual affordances.
 
 The project site at https://kcp.cecs.sh/ is the committed `site/` folder, rendered by
 `pnpm site:build` from `scripts/landing` and served by Cloudflare Workers static assets as
-`wrangler.jsonc` describes (ADR-0066). Cloudflare Workers Builds deploys it from `main`.
-The repository holds no Cloudflare credentials and no deploy workflow.
+`wrangler.jsonc` describes (ADR-0066). The workflow `.github/workflows/deploy-site.yml`
+deploys it when a version is released, after the owner approves the deploy (ADR-0080).
+Once Workers Builds is retired, as described below, a merge to `main` alone deploys nothing.
 
 ### Rules
 
 - Run `pnpm site:build` after any change to the landing copy, the renderer, the stylesheet,
   the script, or the images, and commit the result. Continuous integration renders the site
-  again and fails when `site/` differs, so `main` never holds a stale page.
+  again and fails when `site/` differs, so `main` never holds a stale page, and the deploy
+  runs the same check before it publishes anything.
 - The page states the version in `package.json`. The release workflow runs
   `pnpm release:version`, which is `changeset version` followed by `pnpm site:build`, so the
-  Changesets release pull request carries the rebuilt `site/` and merging it deploys the page
-  that states the new version. Nothing needs bumping by hand after a release. The site test
-  fails when the committed page states any other version than `package.json`.
-- Copy that describes features of an unreleased version waits on its landing branch until
-  that release is merged. Every merge to `main` that changes `site/` deploys at once.
+  Changesets release pull request carries the rebuilt `site/`. Merging it tags the release,
+  and the release workflow then deploys the page that states the new version. Nothing needs
+  bumping by hand after a release. The site test fails when the committed page states any
+  other version than `package.json`.
+- A landing change goes live with the next release. A change merged to `main` between
+  releases waits for it, so copy that describes an unreleased feature can merge with that
+  feature.
 
-### Workers Builds settings
+### How a deploy runs
 
-Create the Worker once from the Cloudflare dashboard with Workers & Pages, Create, Import a
-repository, and enter these settings. Connect it after the first landing change is on
-`main`, so the first build deploys a finished page.
+The deploy workflow has two jobs. The `build` job checks out the released commit, installs
+the dependencies from the lockfile, checks that `site/` is current, runs
+`wrangler deploy --dry-run` without any credential, and uploads `site/` as an artifact. The
+`deploy` job runs in the GitHub Environment `cloudflare-production`. It installs only the
+Wrangler version pinned in `pnpm-lock.yaml`, outside the repository and with lifecycle
+scripts disabled, reads `wrangler.jsonc` from the released commit, takes `site/` from the
+artifact, and runs `wrangler deploy`. No package from the build job runs in it, and the
+token is set on the single deploy step only. Deploys never overlap, and a running deploy is
+never cancelled.
 
-| Setting                                             | Value                                                                            |
-| --------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Git repository                                      | `txasw/kmitl-course-planner`                                                     |
-| Worker name                                         | `kcp-landing`, the `name` in `wrangler.jsonc`, which the build requires to match |
-| Production branch (Settings, Build, Branch control) | `main`                                                                           |
-| Enable Preview Builds (Branch control)              | Off                                                                              |
-| Root directory                                      | `/`, the repository root, since an empty value fails the build                   |
-| Build command                                       | Empty, because `site/` is committed                                              |
-| Deploy command                                      | `pnpm exec wrangler deploy`                                                      |
-| Build watch paths, include                          | `site/*` and `wrangler.jsonc`                                                    |
-| Build watch paths, exclude                          | Empty                                                                            |
-| API token                                           | Create new token, the default                                                    |
-| Build variables                                     | None                                                                             |
+The environment `cloudflare-production` has these settings:
 
-The build image reads Node 24 from `.nvmrc` and runs pnpm 10.12.1 from the
-`packageManager` field through Corepack, then installs the dependencies from
-`pnpm-lock.yaml`. The deploy command runs the Wrangler version pinned in `package.json`,
-and it fails rather than fetch another version if that pin is missing.
+| Setting                      | Value                                              |
+| ---------------------------- | -------------------------------------------------- |
+| Required reviewer            | The owner, who approves every deploy               |
+| Deployment branches and tags | `main` and `v*` only                               |
+| Environment secret           | `CLOUDFLARE_API_TOKEN`, the custom token below     |
+| Environment variable         | `CLOUDFLARE_ACCOUNT_ID`, the Cloudflare account id |
+
+The token lives only as that environment secret, never as a repository secret. It is a
+custom API token, never the Global API Key and never the Edit Cloudflare Workers template,
+which also grants KV, R2, and tail access. It has these permissions and expires one year
+after it is created:
+
+- Account, the one account: Workers Scripts Edit, to upload the Worker and its assets.
+- Account, the one account: Account Settings Read, which Wrangler reads at deploy.
+- Zone, `cecs.sh` only: Workers Routes Edit, for the custom domain route.
+- Zone, `cecs.sh` only: Zone Read.
+
+DNS Edit is not needed, because the custom domain and its record already exist. If a deploy
+fails with a permission error, add only the scope that the error names and record it in this
+list. Before the token expires, create a new one with the same permissions, replace the
+environment secret, and delete the old token.
+
+### Redeploy and roll back
+
+To deploy a released tag again, or to roll back to an earlier one, open Actions, choose
+Deploy site, and run the workflow from `main` with the tag, such as `v1.7.2`. The workflow
+accepts only a tag of the form `v` followed by three numbers separated by dots. The owner
+approves the deploy in the environment review before it runs. A tag released before the
+deploy workflow existed deploys its committed `site/` the same way. For an immediate revert,
+the Worker's Deployments page in the Cloudflare dashboard can also restore an earlier
+version; the next deploy from the workflow replaces it.
+
+### Retiring Workers Builds
+
+Cloudflare Workers Builds deployed the site from `main` before this workflow. It stays
+connected only until the first dispatched deploy of a released tag succeeds. Then open the
+`kcp-landing` Worker in the dashboard, Settings, Build, and disconnect the Git repository,
+so that no push starts a build and only the release deploy publishes the site.
+
+### Domain
 
 Do not add the domain in the dashboard. The route in `wrangler.jsonc`, `kcp.cecs.sh` with
 `custom_domain` set, makes the first deploy create the DNS record and the certificate on the
 `cecs.sh` zone, which is on the same account. The `workers.dev` address and preview URLs
 stay off through the same file, so the site has one public address.
-
-A push that changes no watched path, such as a change to the extension alone, starts no
-build. Cloudflare does not state whether the `*` in a watch path crosses a `/`, so after
-connecting the Worker, confirm once that a change only under `site/en/` starts a build and
-a change only under `src/` does not. To roll back, revert the change on `main`, or pick an earlier version under the
-Worker's Deployments in the dashboard. To deploy by hand, run `pnpm exec wrangler login`
-once and then `pnpm exec wrangler deploy` from the repository root.
 
 After the first deploy, verify the domain in Google Search Console through a DNS TXT record
 on `cecs.sh` and submit https://kcp.cecs.sh/sitemap.xml. Set the repository website and both
